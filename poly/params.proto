@@ -1,0 +1,51 @@
+// Params for initializing renderer.
+
+package poly;
+
+// Mutation probabilities, expressed relative to each other.
+message MutationRates {
+  optional int32 point_add = 1 [default = 1500];
+
+  optional int32 point_delete = 2 [default = 1500];
+
+  optional int32 point_move = 3 [default = 200];
+
+  optional int32 polygon_add = 4 [default = 700];
+
+  optional int32 polygon_delete = 5 [default = 700];
+  
+  optional int32 polygon_move = 6 [default = 700];
+
+  optional int32 color_change = 7 [default = 700];
+}
+
+// Manually assigned points of interest.
+message FocalPoint {
+  // Normalized x coordinate.
+  optional float x = 1;
+
+  // Normalized y coordinate.
+  optional float y = 2;
+
+  // Normalized radius.
+  optional float radius = 3;
+
+  // Strength of the boost within the focal point.
+  optional float strength = 4;
+
+  // TODO(piotrf): add different types of boost?
+}
+
+message EffectParams {
+  // Maximum generations to run algorithm.
+  optional int32 max_generations = 1;
+
+  // Maximum number of polygons to use.
+  optional int32 max_polygons = 2;
+
+  // Mutation rates.
+  optional MutationRates mutation_rates = 3;
+
+  // Any focal points for evaluation, these are best put on faces.
+  repeated FocalPoint focal_point = 4;
+}
