@@ -25,6 +25,7 @@ set(APP_LIBRARIES
   gflags
   pthread
   GL
+  GLU
   X11
   ${PROTOBUF_LIBRARIES}
   ${Boost_THREAD_LIBRARY})

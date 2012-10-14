@@ -3,6 +3,8 @@
 #ifndef GENART_POLY_POLYGON_RENDER_H
 #define GENART_POLY_POLYGON_RENDER_H
 
+struct GLUtesselator;
+
 namespace image {
   class Image;
 }  // namespace image
@@ -25,6 +27,8 @@ class PolygonRender {
  private:
   int width_, height_;
   OfflineGLWindow* win_;
+
+  GLUtesselator* tess_;
 };
 
 }  // namespace poly

@@ -1,9 +1,12 @@
 #include "poly/polygon_render.h"
 
+#include <iostream>
 #include <GL/gl.h>
+#include <GL/glu.h>
 #include <GL/glx.h>
 
 #include "image/image.h"
+#include "poly/genome.h"
 
 namespace poly {
 
@@ -12,6 +15,27 @@ struct OfflineGLWindow {
   GLXPixmap glx_pixmap;
   GLXContext ctx;  
 };
+
+// Tessellated polygon rendering code.
+namespace tess {
+
+void Vertex(const GLvoid* data) {
+  const double* ptr = static_cast<const double*>(data);
+  glVertex2f(ptr[0], ptr[1]);
+}
+
+void Error(GLenum error_code) {
+  std::cout << "GLUTess error: " << gluErrorString(error_code) << std::endl;
+}
+
+void Combine(const GLdouble coords[3],
+             const GLdouble* vertex_data[4],
+             const GLfloat weight[4],
+             GLdouble** out_data) {
+}
+
+} // namespace tess
+
 
 PolygonRender::PolygonRender(int width, int height)
     : width_(width),
@@ -23,6 +47,9 @@ PolygonRender::~PolygonRender() {
   glXMakeCurrent(win_->dpy, None, NULL);
   glXDestroyContext(win_->dpy, win_->ctx);
   delete win_;
+  if (tess_) {
+    gluDeleteTess(tess_);
+  }
 }
 
 void PolygonRender::Init() {
@@ -63,19 +90,41 @@ void PolygonRender::Init() {
   glDisable(GL_DEPTH_TEST);
   glFlush();
   glClear(GL_COLOR_BUFFER_BIT);
+
+  // Create a GL tesselator and callbacks.
+  tess_ = gluNewTess();
+  gluTessCallback(tess_, GLU_TESS_BEGIN, (void(*)())glBegin);
+  gluTessCallback(tess_, GLU_TESS_END, glEnd);  
+  gluTessCallback(tess_, GLU_TESS_VERTEX, (void(*)())tess::Vertex);
+  gluTessCallback(tess_, GLU_TESS_ERROR, (void(*)())tess::Error);
 }
 
 image::Image* PolygonRender::ToImage(const Genome& genome) {
   glXMakeCurrent(win_->dpy, win_->glx_pixmap, win_->ctx);
-  
-  // PolygonRender the image with OpenGL.
-  glBegin(GL_QUADS);
-  glColor3f(0.5, 0.0, 0.0);
-  glVertex2f(100, 100);
-  glVertex2f(500, 100);
-  glVertex2f(500, 300);
-  glVertex2f(100, 300);
-  glEnd();
+
+  for (auto polygon_it = genome.begin();
+       polygon_it != genome.end(); ++polygon_it) {
+    double* vertex_buf = new double[30];
+    
+    const RGBA& c = polygon_it->color();
+    glColor4f(c.r, c.g, c.b, c.a);
+    
+    gluTessBeginPolygon(tess_, 0);
+    gluTessBeginContour(tess_);
+    int i = 0;
+    for (auto vertex_it = polygon_it->begin();
+         vertex_it != polygon_it->end(); ++vertex_it) {
+      vertex_buf[3*i] = width_ * vertex_it->x;
+      vertex_buf[3*i+1] = height_ * vertex_it->y;
+      vertex_buf[3*i+2] = 0;
+      gluTessVertex(tess_, vertex_buf + 3 * i, vertex_buf + 3 * i);
+      ++i;
+    }
+    gluTessEndContour(tess_);
+    gluTessEndPolygon(tess_);
+
+    delete[] vertex_buf;
+  }
 
   // Read the image bytes into a new image object.
   unsigned char* pixels = new unsigned char[3 * width_ * height_];

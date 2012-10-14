@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdlib>
 
 #include "poly/polygon.h"
@@ -54,6 +55,9 @@ void Polygon::Randomize() {
     Point p;
     p.x = ox + h * (Random<double>() - 0.5);
     p.y = oy + h * (Random<double>() - 0.5);
+    // Clamp to our window.
+    p.x = std::min(std::max(p.x, 0.0), 1.0);
+    p.y = std::min(std::max(p.y, 0.0), 1.0);
     points_.push_back(p);
   }
 }

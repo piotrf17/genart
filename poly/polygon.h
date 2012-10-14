@@ -6,11 +6,11 @@
 namespace poly {
 
 struct Point {
-  int x, y;
+  double x, y;
 };
 
 struct RGBA {
-  unsigned char r, g, b, a;
+  double r, g, b, a;
 };
   
 class Polygon {
@@ -19,6 +19,18 @@ class Polygon {
   ~Polygon();
 
   void Randomize();
+
+  std::vector<Point>::const_iterator begin() const {
+    return points_.begin();
+  }
+
+  std::vector<Point>::const_iterator end() const {
+    return points_.end();
+  }
+
+  const RGBA& color() const {
+    return color_;
+  }
   
  private:
 
