@@ -9,7 +9,7 @@ namespace image {
 
 namespace poly {
 
-class FitnessL2WithFocii {
+class FitnessL2WithFocii : public Fitness {
 public:
   FitnessL2WithFocii();
   virtual ~FitnessL2WithFocii();

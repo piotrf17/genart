@@ -3,8 +3,8 @@
 // on a fitness function that computes a color distance metric between two
 // images.
 
-#ifndef GENART_POLY_POLYGON_EFFECT
-#define GENART_POLY_POLYGON_EFFECT
+#ifndef GENART_POLY_POLYGON_EFFECT_H
+#define GENART_POLY_POLYGON_EFFECT_H
 
 #include <vector>
 

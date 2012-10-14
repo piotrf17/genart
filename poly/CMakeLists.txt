@@ -8,6 +8,7 @@ set(SRCS
   genome.cc
   polygon.cc
   polygon_effect.cc
+  polygon_render.cc
   ${PROTO_SRCS}
   ${PROTO_HDRS})
 add_library(poly ${SRCS})

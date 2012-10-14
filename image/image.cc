@@ -30,6 +30,12 @@ Image::Image(const std::string& filename) {
   }
 }
 
+Image::Image(unsigned char* pixels, int width, int height)
+    : width_(width),
+      height_(height),
+      pixels_(pixels) {
+}
+
 Image::~Image() {
   delete[] pixels_;
 }

@@ -8,6 +8,7 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
 #include "image/image.h"
+#include "poly/effect_visitor.h"
 #include "poly/polygon_effect.h"
 #include "util/window.h"
 
@@ -21,6 +22,19 @@ DEFINE_int32(display_step, 1,
              "Show current rendering side by side with image every this number "
              "of generations.  Set to 0 for no display");
 
+class RenderProgress : public poly::EffectVisitor {
+ public:
+  explicit RenderProgress(util::Window& window)
+      : window_(window) {}
+  
+  virtual void Visit(const image::Image* latest) {
+    window_.DrawImage(*latest, 0, 0);
+  }
+
+ private:
+  util::Window& window_;
+};
+
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
 
@@ -30,7 +44,6 @@ int main(int argc, char** argv) {
   // Set the source image.
   image::Image src_image(FLAGS_input_image.c_str());
   polygon_effect.SetInput(&src_image);
-  printf("%d %d\n", src_image.width(), src_image.height());
   
   // Set rendering parameters.
   poly::EffectParams effect_params;
@@ -46,15 +59,19 @@ int main(int argc, char** argv) {
         &config_stream,
         &effect_params);
   }
+  effect_params.set_max_generations(1);
   polygon_effect.SetParams(effect_params);
 
   // Set a hook for a window to display output.
   std::unique_ptr<util::Window> window;
+  std::unique_ptr<RenderProgress> render_progress;
   if (FLAGS_display_step > 0) {
-    // Create a window for output
+    // Create a window for output.
     window.reset(new util::Window("GenArt", 600, 480));
     window->DrawImage(src_image, 0, 0);
-    //    polygon_effect.AddVisitor(FLAGS_display_step, Visualizer);
+    // Attach a visitor for rendering intermediate output.
+    render_progress.reset(new RenderProgress(*window));
+    polygon_effect.AddVisitor(FLAGS_display_step, render_progress.get());
   }
 
   // Render the image!

@@ -11,7 +11,14 @@ namespace image {
 
 class Image {
  public:
+  // Initialize from the image stored in the given file, uses CImg
+  // to load jpg, png, bmp, etc.
   explicit Image(const std::string& filename);
+
+  // Initialize from an array of pixels, the Image object takes ownership
+  // of the array.
+  Image(unsigned char* pixels, int width, int height);
+  
   ~Image();
 
   int width() const;

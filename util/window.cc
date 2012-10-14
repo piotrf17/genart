@@ -1,7 +1,7 @@
 #include "util/window.h"
 
-#include <GL/glx.h>
 #include <GL/gl.h>
+#include <GL/glx.h>
 #include <boost/thread.hpp>
 
 #include "image/image.h"
