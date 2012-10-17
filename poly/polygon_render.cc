@@ -101,10 +101,11 @@ void PolygonRender::Init() {
 
 image::Image* PolygonRender::ToImage(const Genome& genome) {
   glXMakeCurrent(win_->dpy, win_->glx_pixmap, win_->ctx);
-
+  glClear(GL_COLOR_BUFFER_BIT);
+  
   for (auto polygon_it = genome.begin();
        polygon_it != genome.end(); ++polygon_it) {
-    double* vertex_buf = new double[30];
+    double* vertex_buf = new double[3 * polygon_it->num_points()];
     
     const RGBA& c = polygon_it->color();
     glColor4f(c.r, c.g, c.b, c.a);

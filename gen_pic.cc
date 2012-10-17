@@ -24,14 +24,18 @@ DEFINE_int32(display_step, 1,
 
 class RenderProgress : public poly::EffectVisitor {
  public:
-  explicit RenderProgress(util::Window& window)
-      : window_(window) {}
+  explicit RenderProgress(const image::Image& source, util::Window& window)
+      : source_(source),
+        window_(window) {}
   
   virtual void Visit(const image::Image* latest) {
-    window_.DrawImage(*latest, 0, 0);
+    window_.Reset();
+    window_.DrawImage(source_, 0, 0);
+    window_.DrawImage(*latest, source_.width(), 0);
   }
 
  private:
+  const image::Image& source_;
   util::Window& window_;
 };
 
@@ -59,7 +63,7 @@ int main(int argc, char** argv) {
         &config_stream,
         &effect_params);
   }
-  effect_params.set_max_generations(1);
+  effect_params.set_max_generations(10);
   polygon_effect.SetParams(effect_params);
 
   // Set a hook for a window to display output.
@@ -68,9 +72,8 @@ int main(int argc, char** argv) {
   if (FLAGS_display_step > 0) {
     // Create a window for output.
     window.reset(new util::Window("GenArt", 600, 480));
-    window->DrawImage(src_image, 0, 0);
     // Attach a visitor for rendering intermediate output.
-    render_progress.reset(new RenderProgress(*window));
+    render_progress.reset(new RenderProgress(src_image, *window));
     polygon_effect.AddVisitor(FLAGS_display_step, render_progress.get());
   }
 
@@ -82,8 +85,6 @@ int main(int argc, char** argv) {
   // Save the image.
   poly::SaveImageToFile(output_polygons, FLAGS_output_image);
                                 */
-
-  getchar();
 
   return 0;
 }

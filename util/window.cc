@@ -35,6 +35,10 @@ Window::~Window() {
   delete gl_win_;
 }
 
+void Window::Reset() {
+  images_to_draw_.clear();
+}
+
 void Window::DrawImage(const image::Image& image, int x, int y) {
   ImageWithPosition new_image;
   new_image.image = &image;

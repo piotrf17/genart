@@ -28,6 +28,7 @@ class Window {
 
   // TODO(piotrf): refactor into a base window class, and
   // a class that we can draw images on top of.
+  void Reset();
   void DrawImage(const image::Image& image, int x, int y);
 
  private:

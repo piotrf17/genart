@@ -9,6 +9,8 @@
 
 namespace poly {
 
+class MutationRates;
+  
 class Genome {
  public:
   Genome();
@@ -16,7 +18,7 @@ class Genome {
 
   void Randomize(int num_poly);
 
-  void Mutate();
+  void Mutate(const MutationRates& rates);
 
   std::vector<Polygon>::const_iterator begin() const {
     return polygons_.begin();

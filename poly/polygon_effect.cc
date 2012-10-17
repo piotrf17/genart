@@ -49,26 +49,34 @@ void PolygonEffect::Render() {
   mother.Randomize(1);
 
   // Calculate an initial fitness.
-  const image::Image* mother_image = render.ToImage(mother);
-  double last_fitness = fitness_->Evaluate(input_, mother_image);
+  double last_fitness = fitness_->Evaluate(input_, render.ToImage(mother));
   std::cout << "Initial fitness = " << last_fitness << std::endl;
-  //  double start_fitness = last_fitness;
+  double start_fitness = last_fitness;
   
   for (int i = 0; i < params_.max_generations(); ++i) {
-    // TODO(piotrf): may have to create output for the visitors.
-    for (auto it = visitors_.begin(); it != visitors_.end(); ++it) {
-      if (i % it->interval == 0j) {
-        it->visitor->Visit(mother_image);
-      }
-    }
+    std::cout << "**Generation " << i << std::endl;
 
-    /*    child = mother;
-    child.Mutate(params.mutation_rates());
-    double child_fitness = fitness_->Evaluate(child);
+    // Try a child mutation
+    child = mother;
+    child.Mutate(params_.mutation_rates());
+    double child_fitness = fitness_->Evaluate(input_, render.ToImage(child));
     if (child_fitness < last_fitness) {
       mother = child;
       last_fitness = child_fitness;
-      }*/
+    }
+    std::cout << "fitness = " << last_fitness << " frac initial = "
+              << last_fitness / start_fitness << std::endl;
+
+
+    // TODO(piotrf): may have to create output for the visitors.
+    for (auto it = visitors_.begin(); it != visitors_.end(); ++it) {
+      if (i % it->interval == 0j) {
+        it->visitor->Visit(render.ToImage(mother));
+      }
+    }
+
+    
+    getchar();
   }
   
   // TODO(piotrf): may have to create final output.
