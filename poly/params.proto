@@ -4,19 +4,19 @@ package poly;
 
 // Mutation probabilities, expressed relative to each other.
 message MutationRates {
-  optional int32 point_add = 1 [default = 1500];
+  optional int32 point_add = 1 [default = 5];
 
-  optional int32 point_delete = 2 [default = 1500];
+  optional int32 point_delete = 2 [default = 5];
 
-  optional int32 point_move = 3 [default = 200];
+  optional int32 point_move = 3 [default = 20];
 
-  optional int32 polygon_add = 4 [default = 700];
+  optional int32 polygon_add = 4 [default = 1];
 
-  optional int32 polygon_delete = 5 [default = 700];
+  optional int32 polygon_delete = 5 [default = 1];
   
-  optional int32 polygon_move = 6 [default = 700];
+  optional int32 polygon_move = 6 [default = 1];
 
-  optional int32 color_change = 7 [default = 700];
+  optional int32 color_change = 7 [default = 10];
 }
 
 // Manually assigned points of interest.

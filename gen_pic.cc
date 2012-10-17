@@ -18,7 +18,7 @@ DEFINE_string(output_image, "../amelia_poly.jpg",
               "Image to output upon finish.");
 DEFINE_string(effect_config, "",
               "Optional file of parameters for the effect.");
-DEFINE_int32(display_step, 1,
+DEFINE_int32(display_step, 10,
              "Show current rendering side by side with image every this number "
              "of generations.  Set to 0 for no display");
 
@@ -29,6 +29,7 @@ class RenderProgress : public poly::EffectVisitor {
         window_(window) {}
   
   virtual void Visit(const image::Image* latest) {
+    latest_.reset(latest);  // take ownership of the image.
     window_.Reset();
     window_.DrawImage(source_, 0, 0);
     window_.DrawImage(*latest, source_.width(), 0);
@@ -36,6 +37,7 @@ class RenderProgress : public poly::EffectVisitor {
 
  private:
   const image::Image& source_;
+  std::unique_ptr<const image::Image> latest_;
   util::Window& window_;
 };
 
@@ -63,7 +65,7 @@ int main(int argc, char** argv) {
         &config_stream,
         &effect_params);
   }
-  effect_params.set_max_generations(10);
+  effect_params.set_max_generations(1000000);
   polygon_effect.SetParams(effect_params);
 
   // Set a hook for a window to display output.
@@ -86,5 +88,7 @@ int main(int argc, char** argv) {
   poly::SaveImageToFile(output_polygons, FLAGS_output_image);
                                 */
 
+  getchar();
+  
   return 0;
 }

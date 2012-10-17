@@ -29,7 +29,7 @@ Polygon::~Polygon() {
 
 void Polygon::Randomize() {
   // TODO(piotrf): make params
-  const double h = 0.1;
+  const double h = 0.2;
   
   // Random color.
   MutateColor();
@@ -64,6 +64,9 @@ void Polygon::Randomize() {
 // a wall, perhaps check if the side lies along a wall before adding a point.
 void Polygon::AddPoint() {
   // TODO(piotrf): check for max number of points.
+  if (points_.size() > 10) {
+    return;
+  }
 
   // Choose a random side and compute the max vertex angle.
   int side = Random(points_.size());
@@ -138,7 +141,8 @@ void Polygon::MutateColor() {
   color_.a = alpha_0 + alpha_range * Random<float>();
 }
 
-// Compute the angle between sides at point i of the polygon.
+// Compute the angle between sides at point i of the polygon.  This only
+// reports the correct angle if the polygon is convex.
 double Polygon::ComputeInteriorAngle(int i) const {
   int next_i = (i + 1) % (points_.size());
   int last_i = (i - 1 + points_.size()) % (points_.size());
@@ -154,7 +158,16 @@ double Polygon::ComputeInteriorAngle(int i) const {
 // A polygon is convex if all interior angles < 180 degrees.
 bool Polygon::Convex() const {
   for (unsigned int i = 0; i < points_.size(); ++i) {
-    if (ComputeInteriorAngle(i) > M_PI) {
+    int next_i = (i + 1) % (points_.size());
+    int last_i = (i - 1 + points_.size()) % (points_.size());
+    const Point& a = points_[last_i];
+    const Point& b = points_[i];
+    const Point& c = points_[next_i];
+    // Check the turning direction of the side.  Since we have CCW orientation,
+    // each subsequent point should be turning CCW, i.e.
+    // (b - a) x (c - b) > 0
+    double det = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+    if (det < 0) {
       return false;
     }
   }
