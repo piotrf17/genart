@@ -22,7 +22,8 @@ int Random(int range) {
 
 namespace internal {
 
-bool LineIntersect(Point p1, Point p2, Point p3, Point p4) {
+bool LineIntersect(const Point& p1, const Point& p2,
+                   const Point& p3, const Point& p4) {
   double det = (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y);
   if (fabs(det) < 0.001) {
     return false;
@@ -181,5 +182,46 @@ void PolygonMutatorAddPoint::operator()(
   }
 }
 
+void PolygonMutatorDeletePoint::operator()(
+    Polygon* polygon,
+    std::vector<Point>* points) const {
+  if (points->size() <= 3) {
+    return;
+  }
+  for (int iter = 0; iter < 10; ++iter) {
+    int i = Random(points->size());
+    const Point& a = (*points)[(i - 1 + points->size()) % points->size()];
+    const Point& b = (*points)[(i + 1) % points->size()];
+    bool intersecting = false;
+    for (int j = 0; j < i; ++j) {
+      if (internal::LineIntersect(
+          a, b,
+          (*points)[j], (*points)[j + 1])) {
+        intersecting = true;
+        break;
+      }
+    }
+    if (intersecting) {
+      continue;
+    }
+    for (int j = i + 1; j < static_cast<int>(points->size()); ++j) {
+      if (internal::LineIntersect(
+          a, b,
+          (*points)[j], (*points)[(j + 1) % points->size()])) {
+        intersecting = true;
+        break;
+      }
+    }
+    if (!intersecting) {
+      points->erase(points->begin() + i);
+      return;
+    }
+  }
+}
+
+void PolygonMutatorMovePoint::operator()(
+    Polygon* polygon,
+    std::vector<Point>* points) const {
+}
 
 }  // namespace poly

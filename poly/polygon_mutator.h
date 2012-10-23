@@ -39,10 +39,23 @@ class PolygonMutatorAddPoint : public PolygonMutator {
                           std::vector<Point>* points) const;
 };
 
+class PolygonMutatorDeletePoint : public PolygonMutator {
+ public:
+  virtual void operator()(Polygon* polygon,
+                          std::vector<Point>* points) const;
+};
+
+class PolygonMutatorMovePoint : public PolygonMutator {
+ public:
+  virtual void operator()(Polygon* polygon,
+                          std::vector<Point>* points) const;
+};
+
 // Exposed for testing.
 namespace internal {
   
-bool LineIntersect(Point p1, Point p2, Point p3, Point p4);
+bool LineIntersect(const Point& p1, const Point& p2,
+                   const Point& p3, const Point& p4);
 
 }  // namespace internal
 
