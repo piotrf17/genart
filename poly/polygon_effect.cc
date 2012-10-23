@@ -66,10 +66,10 @@ void PolygonEffect::Render() {
     child.Mutate(params_.mutation_rates());
     image.reset(render.ToImage(child));
     double child_fitness = fitness_->Evaluate(input_, image.get());
-    if (child_fitness < last_fitness) {
+    //    if (child_fitness < last_fitness) {
       mother = child;
       last_fitness = child_fitness;
-    }
+      //    }
     if (i % 10 == 0) {
       std::cout << "fitness = " << last_fitness << " frac initial = "
                 << last_fitness / start_fitness << std::endl;
@@ -82,6 +82,8 @@ void PolygonEffect::Render() {
         it->visitor->Visit(render.ToImage(mother));
       }
     }
+
+    getchar();
   }
   
   // TODO(piotrf): may have to create final output.

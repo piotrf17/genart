@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "poly/params.pb.h"
+#include "poly/polygon_mutator.h"
 
 namespace poly {
 
@@ -27,6 +28,9 @@ void Genome::Randomize(int num_poly) {
 }
 
 void Genome::Mutate(const MutationRates& rates) {
+  polygons_[0].Mutate(
+      PolygonMutatorAddPoint());
+  return;
   const int sum_of_rates =
       rates.point_add() +
       rates.point_delete() +
@@ -39,23 +43,25 @@ void Genome::Mutate(const MutationRates& rates) {
   if ((random -= rates.point_add()) < 0) {
     // Add a new point to a polygon.
     //    std::cout << "point add!" << std::endl;
-    polygons_[Random(polygons_.size())].AddPoint();
+    polygons_[Random(polygons_.size())].Mutate(
+        PolygonMutatorConvexAddPoint());
   } else if ((random -= rates.point_delete()) < 0) {
     // Delete a point from a polygon.
     //    std::cout << "point delete!" << std::endl;
     if (polygons_.size() > 1) {
-      polygons_[Random(polygons_.size())].DeletePoint();
+      polygons_[Random(polygons_.size())].Mutate(
+          PolygonMutatorConvexDeletePoint());
     }
   } else if ((random -= rates.point_move()) < 0) {
     // Move a point on a polygon.
     //    std::cout << "point move!" << std::endl;
-    polygons_[Random(polygons_.size())].MovePoint();
+    polygons_[Random(polygons_.size())].Mutate(
+        PolygonMutatorConvexMovePoint());
   } else if ((random -= rates.polygon_add()) < 0) {
     // Add a new polygon.
     //    std::cout << "polygon add!" << std::endl;
     if (polygons_.size() < 125) {
-      Polygon rand_poly;
-      rand_poly.Randomize();
+      Polygon rand_poly;      rand_poly.Randomize();
       polygons_.push_back(rand_poly);
     }
   } else if ((random -= rates.polygon_delete()) < 0) {

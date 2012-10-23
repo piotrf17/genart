@@ -9,8 +9,12 @@
 
 namespace poly {
 
+class PolygonMutator;
+  
 struct Point {
   double x, y;
+  Point() : x(0.0), y(0.0) {}
+  Point(double ox, double oy) : x(ox), y(oy) {}
 };
 
 struct RGBA {
@@ -24,10 +28,8 @@ class Polygon {
 
   void Randomize();
 
-  // Possible mutations.
-  void AddPoint();
-  void DeletePoint();
-  void MovePoint();
+  void Mutate(const PolygonMutator& mutator);
+
   void MutateColor();
   
   std::vector<Point>::const_iterator begin() const {
@@ -42,10 +44,11 @@ class Polygon {
   const RGBA& color() const {
     return color_;
   }
-  
- private:
+
   double ComputeInteriorAngle(int i) const;
   bool Convex() const;
+  
+ private:
   
   std::vector<Point> points_;
   RGBA color_;

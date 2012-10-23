@@ -12,13 +12,13 @@
 #include "poly/polygon_effect.h"
 #include "util/window.h"
 
-DEFINE_string(input_image, "../amelia.jpg",
+DEFINE_string(input_image, "../eiffel.jpg",
               "Source image for creation.");
 DEFINE_string(output_image, "../amelia_poly.jpg",
               "Image to output upon finish.");
 DEFINE_string(effect_config, "",
               "Optional file of parameters for the effect.");
-DEFINE_int32(display_step, 10,
+DEFINE_int32(display_step, 1,
              "Show current rendering side by side with image every this number "
              "of generations.  Set to 0 for no display");
 
@@ -50,6 +50,8 @@ int main(int argc, char** argv) {
   // Set the source image.
   image::Image src_image(FLAGS_input_image.c_str());
   polygon_effect.SetInput(&src_image);
+
+  std::cout << src_image.width() << " " << src_image.height() << std::endl;
   
   // Set rendering parameters.
   poly::EffectParams effect_params;

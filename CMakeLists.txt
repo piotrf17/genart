@@ -10,6 +10,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Werror -std=c++0x")
 ############################################################
 # Configure required libraries
 
+# gtest
+if(BUILD_TESTING)
+  add_subdirectory("/usr/src/gtest/" "${CMAKE_BINARY_DIR}/gtest")
+endif(BUILD_TESTING)
+include(CTest)
+
 # Protobuf library
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
