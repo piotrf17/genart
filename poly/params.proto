@@ -25,21 +25,40 @@ message MutationParams {
 
   // Maximum number of polygons to use.
   optional int32 max_polygons = 2 [default = 125];
+
+  // The starting size parameter for new polygons.
+  optional double initial_size = 3 [default = 0.2];
+
+  // Minimum and maximum color alpha values.
+  optional double min_alpha = 4 [default = 0.3];
+  optional double max_alpha = 5 [default = 0.3];
+
+  // Max number of points a polygon can have.
+  optional int32 max_points_per_polygon = 6 [default = 10];
+
+  // Max distance in normalized screen space a point move can make for x
+  // and y coordinates, individually.  Max total distance is sqrt(2) larger.
+  optional double max_move = 7 [default = 0.05];
+
+  // For non-convex additions, max distance a point can move tangentially
+  // or normal to the side, normalized by the length of that side.
+  optional double non_convex_add_max_normal_distance = 8 [default = 0.5];
+  optional double non_convex_add_max_tangential_distance = 9 [default = 0.25];
 }
 
 // Manually assigned points of interest.
 message FocalPoint {
   // Normalized x coordinate.
-  optional float x = 1;
+  optional double x = 1;
 
   // Normalized y coordinate.
-  optional float y = 2;
+  optional double y = 2;
 
   // Normalized radius.
-  optional float radius = 3;
+  optional double radius = 3;
 
   // Strength of the boost within the focal point.
-  optional float strength = 4;
+  optional double strength = 4;
 
   // TODO(piotrf): add different types of boost?
 }

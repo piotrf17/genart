@@ -7,49 +7,39 @@
 
 namespace poly {
 
+class MutationParams;
+
 class PolygonMutator {
  public:
+  explicit PolygonMutator(const MutationParams& params)
+      : params_(params) {}
+  virtual ~PolygonMutator() {}
+  
   virtual void operator()(Polygon* polygon,
                           std::vector<Point>* points) const = 0;
+
+ protected:
+  const MutationParams& params_;
 };
 
-// Convex operations.
-class PolygonMutatorConvexAddPoint : public PolygonMutator {
- public:
-  virtual void operator()(Polygon* polygon,
-                          std::vector<Point>* points) const;
-};
+#define NEW_MUTATOR(mutator_name)                               \
+  class mutator_name : public PolygonMutator {                  \
+   public:                                                      \
+    explicit mutator_name(const MutationParams& params)         \
+        : PolygonMutator(params) {}                             \
+    virtual ~mutator_name() {}                                  \
+    virtual void operator()(Polygon* polygon,                   \
+                            std::vector<Point>* points) const;  \
+  };
+    
+NEW_MUTATOR(PolygonMutatorConvexAddPoint);
+NEW_MUTATOR(PolygonMutatorConvexDeletePoint);
+NEW_MUTATOR(PolygonMutatorConvexMovePoint);
+NEW_MUTATOR(PolygonMutatorAddPoint);
+NEW_MUTATOR(PolygonMutatorDeletePoint);
+NEW_MUTATOR(PolygonMutatorMovePoint);
 
-class PolygonMutatorConvexDeletePoint : public PolygonMutator {
- public:
-  virtual void operator()(Polygon* polygon,
-                          std::vector<Point>* points) const;
-};
-
-class PolygonMutatorConvexMovePoint : public PolygonMutator {
- public:
-  virtual void operator()(Polygon* polygon,
-                          std::vector<Point>* points) const;
-};
-
-// Nonconvex operations.
-class PolygonMutatorAddPoint : public PolygonMutator {
- public:
-  virtual void operator()(Polygon* polygon,
-                          std::vector<Point>* points) const;
-};
-
-class PolygonMutatorDeletePoint : public PolygonMutator {
- public:
-  virtual void operator()(Polygon* polygon,
-                          std::vector<Point>* points) const;
-};
-
-class PolygonMutatorMovePoint : public PolygonMutator {
- public:
-  virtual void operator()(Polygon* polygon,
-                          std::vector<Point>* points) const;
-};
+#undef NEW_MUTATOR
 
 // Exposed for testing.
 namespace internal {

@@ -47,7 +47,7 @@ void PolygonEffect::Render() {
   Genome mother, child;
 
   // Start with a 1 polygon random mother.
-  mother.Randomize(1);
+  mother.Randomize(params_.mutation_params(), 1);
 
   // Calculate an initial fitness.
   std::unique_ptr<image::Image> image;

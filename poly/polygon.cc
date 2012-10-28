@@ -23,13 +23,7 @@ Polygon::Polygon() {
 Polygon::~Polygon() {
 }
 
-void Polygon::Randomize() {
-  // TODO(piotrf): make params
-  const double h = 0.2;
-  
-  // Random color.
-  MutateColor();
-  
+void Polygon::Randomize(double h) {  
   // Random, smallish triangle.
   double ox = 0.5 * h + (1.0 - h) * Random::Double();
   double oy = 0.5 * h + (1.0 - h) * Random::Double();
@@ -58,18 +52,14 @@ void Polygon::Mutate(const PolygonMutator& mutator) {
   mutator(this, &this->points_);
 }
 
-void Polygon::MutateColor() {
-  const double alpha_0 = 0.3, alpha_range = 0.3;
-  
+void Polygon::MutateColor(double min_alpha, double max_alpha) { 
   // Random color.
   color_.r = Random::Float();
   color_.g = Random::Float();
   color_.b = Random::Float();
-  color_.a = alpha_0 + alpha_range * Random::Float();
+  color_.a = min_alpha + (max_alpha - min_alpha) * Random::Float();
 }
 
-// Compute the angle between sides at point i of the polygon.  This only
-// reports the correct angle if the polygon is convex.
 double Polygon::ComputeInteriorAngle(int i) const {
   int next_i = (i + 1) % (points_.size());
   int last_i = (i - 1 + points_.size()) % (points_.size());
@@ -82,7 +72,6 @@ double Polygon::ComputeInteriorAngle(int i) const {
   return acos(dot / (mag_ab * mag_bc));
 }
 
-// A polygon is convex if all interior angles < 180 degrees.
 bool Polygon::Convex() const {
   for (unsigned int i = 0; i < points_.size(); ++i) {
     int next_i = (i + 1) % (points_.size());

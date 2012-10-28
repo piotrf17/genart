@@ -16,9 +16,10 @@ class Genome {
   Genome();
   ~Genome();
 
-  void Randomize(int num_poly);
+  void Randomize(const MutationParams& params,
+                 int num_poly);
 
-  void Mutate(const MutationParams& rates);
+  void Mutate(const MutationParams& params);
 
   std::vector<Polygon>::const_iterator begin() const {
     return polygons_.begin();

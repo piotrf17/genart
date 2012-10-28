@@ -26,12 +26,28 @@ class Polygon {
   Polygon();
   ~Polygon();
 
-  void Randomize();
+  // Make a random triangle with CCW orientation, with size parameter h.
+  // This only sets the geometry, the color is still undefined so you must
+  // call MutateColor to get a truly random initial polygon.
+  void Randomize(double h);
 
+  // Apply a mutation to the polygon.  Currently these mutations can only
+  // change the geometry of the polygon.
   void Mutate(const PolygonMutator& mutator);
 
-  void MutateColor();
-  
+  // Change the color of the polygon to a random RGBA triple with alpha
+  // range as specified by min_alpha and max_alpha.
+  void MutateColor(double min_alpha, double max_alpha);
+
+  // Compute the angle between sides at point i of the polygon.  This only
+  // reports the correct angle if the polygon is convex.
+  double ComputeInteriorAngle(int i) const;
+
+  // Check if the polygon is convex.  This test only works for simple polygons,
+  // and requires that the polygon have CCW orientation.
+  bool Convex() const;
+
+  // Accessors.
   std::vector<Point>::const_iterator begin() const {
     return points_.begin();
   }
@@ -44,9 +60,6 @@ class Polygon {
   const RGBA& color() const {
     return color_;
   }
-
-  double ComputeInteriorAngle(int i) const;
-  bool Convex() const;
   
  private:
   

@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "poly/params.pb.h"
 #include "poly/polygon.h"
 #include "util/random.h"
 
@@ -16,6 +17,7 @@ namespace internal {
 bool LineIntersect(const Point& p1, const Point& p2,
                    const Point& p3, const Point& p4) {
   double det = (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y);
+  // TODO(piotrf): Use a more sensible check here.
   if (fabs(det) < 0.001) {
     return false;
   }
@@ -37,8 +39,7 @@ bool LineIntersect(const Point& p1, const Point& p2,
 void PolygonMutatorConvexAddPoint::operator()(
     Polygon* polygon,
     std::vector<Point>* points) const {
-  // TODO(piotrf): check for max number of points.
-  if (points->size() > 10) {
+  if (static_cast<int>(points->size()) >= params_.max_points_per_polygon()) {
     return;
   }
 
@@ -82,8 +83,8 @@ void PolygonMutatorConvexMovePoint::operator()(
     std::vector<Point>* points) const {
   int i = Random::Integer(points->size());
   for (int iter = 0; iter < 10; ++iter) {
-    double dx = 0.05 * Random::Double();
-    double dy = 0.05 * Random::Double();
+    double dx = Random::Double(-params_.max_move(), params_.max_move());
+    double dy = Random::Double(-params_.max_move(), params_.max_move());
 
     (*points)[i].x += dx;
     (*points)[i].y += dy;
@@ -114,8 +115,7 @@ void PolygonMutatorConvexMovePoint::operator()(
 void PolygonMutatorAddPoint::operator()(
     Polygon* polygon,
     std::vector<Point>* points) const {
-  // TODO(piotrf): check for max number of points.
-  if (points->size() > 10) {
+  if (static_cast<int>(points->size()) >= params_.max_points_per_polygon()) {
     return;
   }
 
@@ -124,11 +124,14 @@ void PolygonMutatorAddPoint::operator()(
   const Point& c = (*points)[(side + 1) % points->size()];
   Point b;
   bool intersecting = false;
+
+  const double max_n = params_.non_convex_add_max_normal_distance();
+  const double max_t = params_.non_convex_add_max_tangential_distance();
   
   for (int iter = 0; iter < 10; ++iter) {
     // Try a point somewhere in the half-space formed by this side.
-    double un = 0.5 * Random::Double();
-    double ut = 0.5 * Random::Double() - 0.25;
+    double un = Random::Double(max_n);
+    double ut = Random::Double(-max_t, max_t);
     double off_x = (b.y - a.y) * un + (b.x - a.x) * ut;
     double off_y = -(b.x - a.x) * un + (b.y - a.y) * ut;
     b.x = std::min(std::max(0.5 * (a.x + c.x) + off_x, 0.0), 1.0);
@@ -220,8 +223,9 @@ void PolygonMutatorMovePoint::operator()(
   
   for (int iter = 0; iter < 10; ++iter) {
     Point b = (*points)[i];
-    double dx = 0.1 * Random::Double() - 0.05;
-    double dy = 0.1 * Random::Double() - 0.05;
+    double dx = Random::Double(-params_.max_move(), params_.max_move());
+    double dy = Random::Double(-params_.max_move(), params_.max_move());
+
     b.x += dx;
     b.y += dy;
     bool intersecting = false;
