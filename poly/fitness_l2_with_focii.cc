@@ -13,6 +13,7 @@ FitnessL2WithFocii::FitnessL2WithFocii() {
 FitnessL2WithFocii::~FitnessL2WithFocii() {
 }
 
+// TODO(piotrf): actually add foci.
 double FitnessL2WithFocii::Evaluate(
     const image::Image* ref_image,
     const image::Image* new_image) const {

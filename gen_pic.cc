@@ -63,11 +63,13 @@ int main(int argc, char** argv) {
       return 1;
     }
     google::protobuf::io::IstreamInputStream config_stream(&config_file);
-    google::protobuf::TextFormat::Parse(
-        &config_stream,
-        &effect_params);
+    if (!google::protobuf::TextFormat::Parse(
+            &config_stream,
+            &effect_params)) {
+      std::cout << "ERROR: failed to parse config file." << std::endl;
+      return 1;
+    }
   }
-  effect_params.set_max_generations(1000000);
   polygon_effect.SetParams(effect_params);
 
   // Set a hook for a window to display output.
