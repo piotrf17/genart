@@ -63,7 +63,7 @@ void PolygonEffect::Render() {
 
     // Try a child mutation
     child = mother;
-    child.Mutate(params_.mutation_rates());
+    child.Mutate(params_.mutation_params());
     image.reset(render.ToImage(child));
     double child_fitness = fitness_->Evaluate(input_, image.get());
     if (child_fitness < last_fitness) {

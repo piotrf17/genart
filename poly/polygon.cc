@@ -7,19 +7,13 @@
 #include <cstdlib>
 
 #include "poly/polygon_mutator.h"
+#include "util/random.h"
+
+using util::Random;
 
 namespace poly {
 
 namespace {
-
-template <typename T>
-T Random() {
-  return rand() / static_cast<T>(RAND_MAX);
-}
-
-int Random(int range) {
-  return static_cast<int>(rand() / static_cast<double>(RAND_MAX) * range);
-}
 
 }  // namespace
 
@@ -31,18 +25,18 @@ Polygon::~Polygon() {
 
 void Polygon::Randomize() {
   // TODO(piotrf): make params
-  const double h = 0.4;
+  const double h = 0.2;
   
   // Random color.
   MutateColor();
   
   // Random, smallish triangle.
-  double ox = 0.5 * h + (1.0 - h) * Random<double>();
-  double oy = 0.5 * h + (1.0 - h) * Random<double>();
+  double ox = 0.5 * h + (1.0 - h) * Random::Double();
+  double oy = 0.5 * h + (1.0 - h) * Random::Double();
   for (int i = 0; i < 3; ++i) {
     Point p;
-    p.x = ox + h * (Random<double>() - 0.5);
-    p.y = oy + h * (Random<double>() - 0.5);
+    p.x = ox + h * (Random::Double() - 0.5);
+    p.y = oy + h * (Random::Double() - 0.5);
     // Assert that I did the above calculations right.
     assert(p.x >= 0.0 && p.x <= 1.0);
     assert(p.y >= 0.0 && p.y <= 1.0);
@@ -68,10 +62,10 @@ void Polygon::MutateColor() {
   const double alpha_0 = 0.3, alpha_range = 0.3;
   
   // Random color.
-  color_.r = Random<float>();
-  color_.g = Random<float>();
-  color_.b = Random<float>();
-  color_.a = alpha_0 + alpha_range * Random<float>();
+  color_.r = Random::Float();
+  color_.g = Random::Float();
+  color_.b = Random::Float();
+  color_.a = alpha_0 + alpha_range * Random::Float();
 }
 
 // Compute the angle between sides at point i of the polygon.  This only

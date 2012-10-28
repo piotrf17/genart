@@ -17,6 +17,6 @@ add_library(poly ${SRCS})
 # Testing.
 if(BUILD_TESTING)
   add_executable(polygon_mutator_test polygon_mutator_test.cc)
-  target_link_libraries(polygon_mutator_test gtest_main poly)
+  target_link_libraries(polygon_mutator_test gtest_main poly util)
   add_test(PolygonMutatorTest ${PROJECT_BINARY_DIR}/poly/polygon_mutator_test)
 endif(BUILD_TESTING)

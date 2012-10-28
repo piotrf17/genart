@@ -19,6 +19,14 @@ message MutationRates {
   optional int32 color_change = 7 [default = 10];
 }
 
+// Parameters limiting mutations.
+message MutationParams {
+  optional MutationRates rates = 1;
+
+  // Maximum number of polygons to use.
+  optional int32 max_polygons = 2 [default = 125];
+}
+
 // Manually assigned points of interest.
 message FocalPoint {
   // Normalized x coordinate.
@@ -40,11 +48,8 @@ message EffectParams {
   // Maximum generations to run algorithm.
   optional int32 max_generations = 1;
 
-  // Maximum number of polygons to use.
-  optional int32 max_polygons = 2;
-
   // Mutation rates.
-  optional MutationRates mutation_rates = 3;
+  optional MutationParams mutation_params = 3;
 
   // Any focal points for evaluation, these are best put on faces.
   repeated FocalPoint focal_point = 4;

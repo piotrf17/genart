@@ -5,20 +5,11 @@
 #include <iostream>
 
 #include "poly/polygon.h"
+#include "util/random.h"
+
+using util::Random;
 
 namespace poly {
-
-// TODO(piotrf): move to utility file / rename
-namespace {
-template <typename T>
-T Random() {
-  return rand() / static_cast<T>(RAND_MAX);
-}
-
-int Random(int range) {
-  return static_cast<int>(rand() / static_cast<double>(RAND_MAX) * range);
-}
-}  // namespace
 
 namespace internal {
 
@@ -52,7 +43,7 @@ void PolygonMutatorConvexAddPoint::operator()(
   }
 
   // Choose a random side and compute the max vertex angle.
-  int side = Random(points->size());
+  int side = Random::Integer(points->size());
   double max_angle = std::max(
       polygon->ComputeInteriorAngle(side),
       polygon->ComputeInteriorAngle((side + 1) % points->size()));
@@ -61,7 +52,7 @@ void PolygonMutatorConvexAddPoint::operator()(
   // convexity constraint.
   const Point& a = (*points)[side];
   const Point& b = (*points)[(side + 1) % (points->size())];
-  double offset = Random<double>();
+  double offset = Random::Double();
   if (max_angle > M_PI / 2.0) {
     offset *= std::min(tan(M_PI - max_angle), 1.0);
   }
@@ -82,17 +73,17 @@ void PolygonMutatorConvexDeletePoint::operator()(
   if (points->size() <= 3) {
     return;
   }
-  int i = Random(points->size());
+  int i = Random::Integer(points->size());
   points->erase(points->begin() + i);
 }
 
 void PolygonMutatorConvexMovePoint::operator()(
     Polygon* polygon,
     std::vector<Point>* points) const {
-  int i = Random(points->size());
+  int i = Random::Integer(points->size());
   for (int iter = 0; iter < 10; ++iter) {
-    double dx = 0.05 * Random<double>();
-    double dy = 0.05 * Random<double>();
+    double dx = 0.05 * Random::Double();
+    double dy = 0.05 * Random::Double();
 
     (*points)[i].x += dx;
     (*points)[i].y += dy;
@@ -128,7 +119,7 @@ void PolygonMutatorAddPoint::operator()(
     return;
   }
 
-  int side = Random(points->size());
+  int side = Random::Integer(points->size());
   const Point& a = (*points)[side];
   const Point& c = (*points)[(side + 1) % points->size()];
   Point b;
@@ -136,8 +127,8 @@ void PolygonMutatorAddPoint::operator()(
   
   for (int iter = 0; iter < 10; ++iter) {
     // Try a point somewhere in the half-space formed by this side.
-    double un = 0.5 * Random<double>();
-    double ut = 0.5 * Random<double>() - 0.25;
+    double un = 0.5 * Random::Double();
+    double ut = 0.5 * Random::Double() - 0.25;
     double off_x = (b.y - a.y) * un + (b.x - a.x) * ut;
     double off_y = -(b.x - a.x) * un + (b.y - a.y) * ut;
     b.x = std::min(std::max(0.5 * (a.x + c.x) + off_x, 0.0), 1.0);
@@ -189,7 +180,7 @@ void PolygonMutatorDeletePoint::operator()(
     return;
   }
   for (int iter = 0; iter < 10; ++iter) {
-    int i = Random(points->size());
+    int i = Random::Integer(points->size());
     const Point& a = (*points)[(i - 1 + points->size()) % points->size()];
     const Point& b = (*points)[(i + 1) % points->size()];
     bool intersecting = false;
@@ -222,6 +213,68 @@ void PolygonMutatorDeletePoint::operator()(
 void PolygonMutatorMovePoint::operator()(
     Polygon* polygon,
     std::vector<Point>* points) const {
+  int i = Random::Integer(points->size());
+
+  const Point& a = (*points)[(i - 1 + points->size()) % points->size()];
+  const Point& c = (*points)[(i + 1) % points->size()];
+  
+  for (int iter = 0; iter < 10; ++iter) {
+    Point b = (*points)[i];
+    double dx = 0.1 * Random::Double() - 0.05;
+    double dy = 0.1 * Random::Double() - 0.05;
+    b.x += dx;
+    b.y += dy;
+    bool intersecting = false;
+    for (int j = 0; j < i - 1; ++j) {
+      if (internal::LineIntersect(
+          a, b,
+          (*points)[j], (*points)[j + 1])) {
+        intersecting = true;
+        break;
+      } else if (internal::LineIntersect(
+          b, c,
+          (*points)[j], (*points)[j + 1])) {
+        intersecting = true;
+        break;
+      }
+    }
+    if (intersecting) {
+      continue;
+    }
+    for (int j = i + 1; j < static_cast<int>(points->size()); ++j) {
+      if (internal::LineIntersect(
+          a, b,
+          (*points)[j], (*points)[(j + 1) % points->size()])) {
+        intersecting = true;
+        break;
+      } else if (internal::LineIntersect(
+          b, c,
+          (*points)[j], (*points)[(j + 1) % points->size()])) {
+        intersecting = true;
+        break;
+      }
+
+    }
+    if (!intersecting) {
+      (*points)[i].x += dx;
+      (*points)[i].y += dy;
+      
+      // A triangle can stay convex with a point movement that flips the
+      // orientation of the outside.  Ensure that we're CCW oriented.
+      if (points->size() == 3) {
+        const Point& a = (*points)[0];
+        const Point& b = (*points)[1];
+        const Point& c = (*points)[2];
+        double det = (a.x - b.x) * (c.y - b.y) - (a.y - b.y) * (c.x - b.x);
+        if (det > 0) {
+          std::swap((*points)[1], (*points)[2]);
+        }
+      }
+
+      return;
+    }
+    
+  }
 }
 
 }  // namespace poly
