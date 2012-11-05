@@ -6,6 +6,8 @@
 #include <gflags/gflags.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
 
 #include "image/image.h"
 #include "poly/effect_visitor.h"
@@ -22,23 +24,70 @@ DEFINE_int32(display_step, 1,
              "Show current rendering side by side with image every this number "
              "of generations.  Set to 0 for no display");
 
+// A window that shows a side by side comparison of the original and the
+// image our effect has created.
+class ComparisonWindow : public util::Window {
+ public:
+  ComparisonWindow() :
+      util::Window("GenPic", 640, 480) {
+    source_image = NULL;
+    effect_image = NULL;
+  }
+  virtual ~ComparisonWindow() {}
+  
+
+  void SetSourceImage(const image::Image& image) {
+    source_image = &image;
+  }
+
+  void SetEffectImage(const image::Image& image) {
+    effect_image = &image;
+  }
+  
+ private:
+  virtual void Draw() {
+    // Clear the screen.
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    if (NULL == source_image) {
+      return;
+    }
+    glRasterPos2i(0, 0);
+    glDrawPixels(source_image->width(),
+                 source_image->height(),
+                 GL_RGB, GL_UNSIGNED_BYTE,
+                 source_image->pixels());
+
+    if (NULL == effect_image) {
+      return;
+    }
+    glRasterPos2i(source_image->width(), 0);
+    glDrawPixels(effect_image->width(),
+                 effect_image->height(),
+                 GL_RGB, GL_UNSIGNED_BYTE,
+                 effect_image->pixels());
+  }
+
+  const image::Image* source_image;
+  const image::Image* effect_image;
+};
+
+// A visitor class that updates our comparison window with the latest rendering.
 class RenderProgress : public poly::EffectVisitor {
  public:
-  explicit RenderProgress(const image::Image& source, util::Window& window)
-      : source_(source),
-        window_(window) {}
+  explicit RenderProgress(const image::Image& source, ComparisonWindow* window)
+      : window_(window) {
+    window_->SetSourceImage(source);
+  }
   
   virtual void Visit(const image::Image* latest) {
     latest_.reset(latest);  // take ownership of the image.
-    window_.Reset();
-    window_.DrawImage(source_, 0, 0);
-    window_.DrawImage(*latest, source_.width(), 0);
+    window_->SetEffectImage(*latest_);
   }
 
  private:
-  const image::Image& source_;
   std::unique_ptr<const image::Image> latest_;
-  util::Window& window_;
+  ComparisonWindow* window_;
 };
 
 int main(int argc, char** argv) {
@@ -73,13 +122,13 @@ int main(int argc, char** argv) {
   polygon_effect.SetParams(effect_params);
 
   // Set a hook for a window to display output.
-  std::unique_ptr<util::Window> window;
+  std::unique_ptr<ComparisonWindow> window;
   std::unique_ptr<RenderProgress> render_progress;
   if (FLAGS_display_step > 0) {
     // Create a window for output.
-    window.reset(new util::Window("GenArt", 600, 480));
+    window.reset(new ComparisonWindow());
     // Attach a visitor for rendering intermediate output.
-    render_progress.reset(new RenderProgress(src_image, *window));
+    render_progress.reset(new RenderProgress(src_image, window.get()));
     polygon_effect.AddVisitor(FLAGS_display_step, render_progress.get());
   }
 

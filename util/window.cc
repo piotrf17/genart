@@ -4,8 +4,6 @@
 #include <GL/glx.h>
 #include <boost/thread.hpp>
 
-#include "image/image.h"
-
 namespace util {
 
 struct GLWindow {
@@ -33,18 +31,6 @@ Window::~Window() {
   gui_thread_->join();
   DestroyGLWindow();
   delete gl_win_;
-}
-
-void Window::Reset() {
-  images_to_draw_.clear();
-}
-
-void Window::DrawImage(const image::Image& image, int x, int y) {
-  ImageWithPosition new_image;
-  new_image.image = &image;
-  new_image.x = x;
-  new_image.y = y;
-  images_to_draw_.push_back(new_image);
 }
 
 void Window::CreateGLWindow(const std::string& title,
@@ -155,17 +141,6 @@ void Window::ResizeGLScene() {
   glLoadIdentity();
 }
 
-void Window::RenderImages() {
-  for (unsigned int i = 0; i < images_to_draw_.size(); ++i) {
-    glRasterPos2i(images_to_draw_[i].x,
-                  images_to_draw_[i].y);
-    glDrawPixels(images_to_draw_[i].image->width(),
-                 images_to_draw_[i].image->height(),
-                 GL_RGB, GL_UNSIGNED_BYTE,
-                 images_to_draw_[i].image->pixels());
-  }
-}
-
 void Window::RunUIThread() {
   // Attach the GLX context to our window.  This must be done in the thread
   // where we'll be doing our rendering.
@@ -198,10 +173,7 @@ void Window::RunUIThread() {
       }
     }
 
-    // Clear the screen.
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    RenderImages();
+    Draw();
     
     glXSwapBuffers(gl_win_->dpy, gl_win_->win);
     
