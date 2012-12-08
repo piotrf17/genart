@@ -89,8 +89,8 @@ class RenderProgress : public poly::EffectVisitor {
       : window_(window) {
   }
   
-  virtual void Visit(const image::Image* latest) {
-    window_->SetEffectImage(latest);
+  virtual void Visit(const image::Image& latest) {
+    window_->SetEffectImage(new image::Image(latest));
   }
 
  private:

@@ -5,7 +5,7 @@ namespace poly {
 
 class EffectVisitor {
  public:
-  virtual void Visit(const image::Image* latest) = 0;
+  virtual void Visit(const image::Image& latest) = 0;
 };
 
 } // namespace poly

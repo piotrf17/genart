@@ -77,11 +77,9 @@ void PolygonEffect::Render() {
                 << last_fitness / start_fitness << std::endl;
     }
 
-
-    // TODO(piotrf): may have to create output for the visitors.
     for (auto it = visitors_.begin(); it != visitors_.end(); ++it) {
       if (i % it->interval == 0) {
-        it->visitor->Visit(render.ToImage(mother));
+        it->visitor->Visit(*image);
       }
     }
   }
