@@ -42,7 +42,9 @@ void PolygonEffect::AddVisitor(int interval, EffectVisitor* visitor) {
 
 void PolygonEffect::Render() {
   PolygonRender render(input_->width(), input_->height());
-  render.Init();
+  if (!render.Init()) {
+    return;
+  }
   
   Genome mother, child;
 

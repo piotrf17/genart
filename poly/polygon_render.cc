@@ -52,7 +52,7 @@ PolygonRender::~PolygonRender() {
   }
 }
 
-void PolygonRender::Init() {
+bool PolygonRender::Init() {
   // Open a display connection to the X server.
   win_->dpy = XOpenDisplay(NULL);
   int screen = DefaultScreen(win_->dpy);
@@ -72,9 +72,16 @@ void PolygonRender::Init() {
   win_->glx_pixmap = glXCreateGLXPixmap(win_->dpy, vi, pixmap);
 
   // Create a GLX context.
-  win_->ctx = glXCreateContext(win_->dpy, vi, 0, GL_FALSE);
-  glXMakeCurrent(win_->dpy, win_->glx_pixmap, win_->ctx);
+  win_->ctx = glXCreateContext(win_->dpy, vi, 0, GL_TRUE);
+  if (!glXMakeCurrent(win_->dpy, win_->glx_pixmap, win_->ctx)) {
+    std::cout << "Failed to make direct pixmap context" << std::endl;
+    return false;
+  }
 
+  std::cout << "Pixmap direct rendering: "
+            << (glXIsDirect(win_->dpy, win_->ctx) ? "Yes" : "No")
+            << std::endl;
+  
   // Create a viewport the size of the image.
   glViewport(0, 0, width_, height_);
   // Setup an orthographic projection.
@@ -99,6 +106,8 @@ void PolygonRender::Init() {
   gluTessCallback(tess_, GLU_TESS_END, glEnd);  
   gluTessCallback(tess_, GLU_TESS_VERTEX, (void(*)())tess::Vertex);
   gluTessCallback(tess_, GLU_TESS_ERROR, (void(*)())tess::Error);
+
+  return true;
 }
 
 image::Image* PolygonRender::ToImage(const Genome& genome) {

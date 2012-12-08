@@ -20,7 +20,7 @@ class PolygonRender {
   ~PolygonRender();
 
   // Create an offline rendering context with GLX.
-  void Init();
+  bool Init();
 
   image::Image* ToImage(const Genome& genome);
   

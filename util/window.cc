@@ -63,6 +63,10 @@ void Window::CreateGLWindow(const std::string& title,
   // Create a GLX graphics context, the opengl drawing machine
   gl_win_->ctx = glXCreateContext(gl_win_->dpy, vi, 0, GL_TRUE);
 
+  std::cout << "Window direct rendering: "
+            << (glXIsDirect(gl_win_->dpy, gl_win_->ctx) ? "Yes" : "No")
+            << std::endl;
+
   // Create a colormap based on all the current X settings
   Colormap cmap = XCreateColormap(gl_win_->dpy,
                                   RootWindow(gl_win_->dpy, vi->screen),
