@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 
+#include <boost/thread.hpp>
 #include <gflags/gflags.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -36,12 +37,18 @@ class ComparisonWindow : public util::Window {
   virtual ~ComparisonWindow() {}
   
 
-  void SetSourceImage(const image::Image& image) {
-    source_image = &image;
+  // This takes ownership of the image!
+  void SetSourceImage(const image::Image* image) {
+    image_mutex.lock();
+    source_image.reset(image);
+    image_mutex.unlock();
   }
 
-  void SetEffectImage(const image::Image& image) {
-    effect_image = &image;
+  // This takes ownership of the image!
+  void SetEffectImage(const image::Image* image) {
+    image_mutex.lock();
+    effect_image.reset(image);
+    image_mutex.unlock();
   }
   
  private:
@@ -49,49 +56,53 @@ class ComparisonWindow : public util::Window {
     // Clear the screen.
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (NULL == source_image) {
+    if (NULL == source_image || NULL == effect_image) {
       return;
     }
+
+    image_mutex.lock();
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glRasterPos2i(0, 0);
     glDrawPixels(source_image->width(),
                  source_image->height(),
                  GL_RGB, GL_UNSIGNED_BYTE,
                  source_image->pixels());
-
-    if (NULL == effect_image) {
-      return;
-    }
     glRasterPos2i(source_image->width(), 0);
     glDrawPixels(effect_image->width(),
                  effect_image->height(),
                  GL_RGB, GL_UNSIGNED_BYTE,
                  effect_image->pixels());
+    image_mutex.unlock();
   }
 
-  const image::Image* source_image;
-  const image::Image* effect_image;
+  // The rendering class owns the actual image pixels.
+  boost::mutex image_mutex;
+  std::unique_ptr<const image::Image> source_image;
+  std::unique_ptr<const image::Image> effect_image;
 };
 
 // A visitor class that updates our comparison window with the latest rendering.
 class RenderProgress : public poly::EffectVisitor {
  public:
-  explicit RenderProgress(const image::Image& source, ComparisonWindow* window)
+  explicit RenderProgress(ComparisonWindow* window)
       : window_(window) {
-    window_->SetSourceImage(source);
   }
   
   virtual void Visit(const image::Image* latest) {
-    latest_.reset(latest);  // take ownership of the image.
-    window_->SetEffectImage(*latest_);
+    window_->SetEffectImage(latest);
   }
 
  private:
-  std::unique_ptr<const image::Image> latest_;
   ComparisonWindow* window_;
 };
 
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
+
+  if (XInitThreads() == 0) {
+    std::cout << "Failed to initialize thread support in xlib." << std::endl;
+    return 1;
+  }
 
   // Create a new renderer.
   poly::PolygonEffect polygon_effect;
@@ -127,8 +138,9 @@ int main(int argc, char** argv) {
   if (FLAGS_display_step > 0) {
     // Create a window for output.
     window.reset(new ComparisonWindow());
+    window->SetSourceImage(new image::Image(src_image));
     // Attach a visitor for rendering intermediate output.
-    render_progress.reset(new RenderProgress(src_image, window.get()));
+    render_progress.reset(new RenderProgress(window.get()));
     polygon_effect.AddVisitor(FLAGS_display_step, render_progress.get());
   }
 

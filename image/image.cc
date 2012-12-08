@@ -36,6 +36,14 @@ Image::Image(unsigned char* pixels, int width, int height)
       pixels_(pixels) {
 }
 
+Image::Image(const Image& image) {
+  width_ = image.width_;
+  height_ = image.height_;
+  const int byte_size = 3 * width_ * height_;
+  pixels_ = new unsigned char[byte_size];
+  memcpy(pixels_, image.pixels_, byte_size);
+}
+
 Image::~Image() {
   delete[] pixels_;
 }

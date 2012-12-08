@@ -3,10 +3,6 @@
 
 #include <string>
 
-namespace cimg_library {
-  template<class T> class CImg;
-}  // namespace cimg_library
-
 namespace image {
 
 class Image {
@@ -18,7 +14,8 @@ class Image {
   // Initialize from an array of pixels, the Image object takes ownership
   // of the array.
   Image(unsigned char* pixels, int width, int height);
-  
+
+  Image(const Image& image);  
   ~Image();
 
   int width() const;
@@ -28,13 +25,10 @@ class Image {
   unsigned char* mutable_pixels();
 
  private:
-  Image(const Image&);
   Image& operator=(const Image&);
 
   int width_, height_;
   unsigned char* pixels_;
-  
-  cimg_library::CImg<unsigned char>* cimg_;
 };
 
 }  // namespace image
