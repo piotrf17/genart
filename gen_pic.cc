@@ -13,6 +13,7 @@
 #include "image/image.h"
 #include "poly/effect_visitor.h"
 #include "poly/polygon_effect.h"
+#include "util/svg_writer.h"
 #include "util/window.h"
 
 DEFINE_string(input_image, "../eiffel.jpg",
@@ -103,7 +104,7 @@ int main(int argc, char** argv) {
     std::cout << "Failed to initialize thread support in xlib." << std::endl;
     return 1;
   }
-
+  
   // Create a new renderer.
   poly::PolygonEffect polygon_effect;
 

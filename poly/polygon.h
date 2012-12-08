@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "util/point.h"
+
 // I don't know what idiot is #define'ing this, but I need this line
 // for my function to compile :(
 #undef Convex
@@ -11,12 +13,6 @@ namespace poly {
 
 class PolygonMutator;
   
-struct Point {
-  double x, y;
-  Point() : x(0.0), y(0.0) {}
-  Point(double ox, double oy) : x(ox), y(oy) {}
-};
-
 struct RGBA {
   double r, g, b, a;
 };
