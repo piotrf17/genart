@@ -8,9 +8,33 @@
 #include "poly/fitness.h"
 #include "poly/fitness_l2_with_focii.h"
 #include "poly/genome.h"
+#include "poly/polygon_image.pb.h"
 #include "poly/polygon_render.h"
 
 namespace poly {
+
+namespace {
+
+void GenomeToProto(const Genome& genome,
+                   output::PolygonImage* output) {
+  for (auto polygon_it = genome.begin();
+       polygon_it != genome.end(); ++polygon_it) {
+    auto* polygon = output->add_polygon();
+    for (auto vertex_it = polygon_it->begin();
+         vertex_it != polygon_it->end(); ++vertex_it) {
+      auto* point = polygon->add_point();
+      point->set_x(vertex_it->x);
+      point->set_y(vertex_it->y);
+    }
+    auto* color = polygon->mutable_color();
+    color->set_r(int(256 * polygon_it->color().r));
+    color->set_g(int(256 * polygon_it->color().g));
+    color->set_b(int(256 * polygon_it->color().b));
+    color->set_a(int(256 * polygon_it->color().a));
+  }
+}
+
+}  // namespace
 
 PolygonEffect::PolygonEffect() {
   // TODO(piotrf): Use a factory method.
@@ -25,7 +49,7 @@ void PolygonEffect::SetInput(const image::Image* input) {
   input_ = input;
 }
 
-void PolygonEffect::SetOutput(PolygonImage* output) {
+void PolygonEffect::SetOutput(output::PolygonImage* output) {
   output_ = output;
 }
 
@@ -84,7 +108,10 @@ void PolygonEffect::Render() {
     }
   }
   
-  // TODO(piotrf): may have to create final output.
+  // Create the final output in a proto structure.
+  GenomeToProto(mother, output_);
+  output_->set_height(input_->height());
+  output_->set_width(input_->width());
 }
 
 

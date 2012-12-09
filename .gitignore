@@ -2,3 +2,5 @@ build/
 config
 todo.org
 *.jpg
+*.svg
+*.png

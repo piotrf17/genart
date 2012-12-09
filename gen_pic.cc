@@ -13,13 +13,13 @@
 #include "image/image.h"
 #include "poly/effect_visitor.h"
 #include "poly/polygon_effect.h"
+#include "poly/polygon_image.pb.h"
+#include "poly/util.h"
 #include "util/svg_writer.h"
 #include "util/window.h"
 
-DEFINE_string(input_image, "../eiffel.jpg",
-              "Source image for creation.");
-DEFINE_string(output_image, "../amelia_poly.jpg",
-              "Image to output upon finish.");
+DEFINE_string(input_image, "", "Source image for creation.");
+DEFINE_string(output_image, "", "Image to output upon finish.");
 DEFINE_string(effect_config, "",
               "Optional file of parameters for the effect.");
 DEFINE_int32(display_step, 1,
@@ -146,14 +146,14 @@ int main(int argc, char** argv) {
   }
 
   // Render the image!
-  /*  poly::PolygonImage output_polygons;
-  polygon_renderer.SetOutput(&output_polygons);*/
+  poly::output::PolygonImage output_polygons;
+  polygon_effect.SetOutput(&output_polygons);
   polygon_effect.Render();
-  /*
+
   // Save the image.
   poly::SaveImageToFile(output_polygons, FLAGS_output_image);
-                                */
 
+  std::cout << "Finally, rendering finished." << std::endl;
   getchar();
   
   return 0;

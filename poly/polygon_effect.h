@@ -11,14 +11,16 @@
 #include "poly/params.pb.h"
 
 namespace image {
-  class Image;
+class Image;
 }  // namespace image
 
 namespace poly {
 
 class EffectVisitor;
 class Fitness;
+namespace output {
 class PolygonImage;
+}  // namespace output
 
 struct StepVisitor {
   int interval;
@@ -31,7 +33,7 @@ class PolygonEffect {
   ~PolygonEffect();
 
   void SetInput(const image::Image* input);
-  void SetOutput(PolygonImage* output);
+  void SetOutput(output::PolygonImage* output);
 
   void SetParams(const EffectParams& params);
   
@@ -47,7 +49,7 @@ class PolygonEffect {
   const image::Image* input_;
   
   // Final output.
-  PolygonImage* output_;
+  output::PolygonImage* output_;
 
   // Visitors on intermediate output
   std::vector<StepVisitor> visitors_;

@@ -19,7 +19,7 @@ class SvgWriter {
   void Start(const std::string& filename);
   void Finish();
 
-  // Methods to set pen color.
+  // Methods to set pen type.
   struct Color {
     Color() : r(0), g(0), b(0), a(0) {}
     Color(unsigned char ar, unsigned char ag,
@@ -29,17 +29,24 @@ class SvgWriter {
   };
   void SetStrokeColor(const Color& c);
   void SetFillColor(const Color& c);
+  void SetStrokeWidth(int width);
 
   // Methods for drawing shapes.
-  void AddPolygon(const std::vector<Point>& points,
-                  int stroke_width);
+  void AddRectangle(int width, int height);
+  void AddPolygon(const std::vector<Point>& points);
   
  private:
+  void WriteStyle();
   void WriteColor(const Color& c);
   
   std::ofstream outfile_;
 
-  Color stroke_color, fill_color;
+  // Pen settings.
+  int stroke_width_;
+  Color stroke_color_;
+
+  // Fill settings
+  Color fill_color_;
 };
 
 }  // namespace util

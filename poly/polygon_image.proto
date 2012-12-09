@@ -1,0 +1,27 @@
+// Proto for an image made up of polygons.
+
+package poly.output;
+
+message Point {
+  optional double x = 1;
+  optional double y = 2;
+}
+
+message Color {
+  optional int32 r = 1 [default = 0];
+  optional int32 g = 2 [default = 0];
+  optional int32 b = 3 [default = 0];
+  optional int32 a = 4 [default = 0];
+}
+
+message Polygon {
+  repeated Point point = 1;
+  optional Color color = 2;
+}
+
+message PolygonImage {
+  repeated Polygon polygon = 1;
+
+  optional int32 height = 2;
+  optional int32 width = 3;
+}

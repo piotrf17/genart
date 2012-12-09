@@ -1,6 +1,7 @@
 # Build proto files.
 include_directories(${PROJECT_BINARY_DIR})
-PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS params.proto)
+PROTOBUF_GENERATE_CPP(PARAMS_PROTO_SRCS PARAMS_PROTO_HDRS params.proto)
+PROTOBUF_GENERATE_CPP(IMAGE_PROTO_SRCS IMAGE_PROTO_HDRS polygon_image.proto)
 
 # Poly library.
 set(SRCS
@@ -10,8 +11,9 @@ set(SRCS
   polygon_effect.cc
   polygon_mutator.cc
   polygon_render.cc
-  ${PROTO_SRCS}
-  ${PROTO_HDRS})
+  util.cc
+  ${PARAMS_PROTO_SRCS}
+  ${IMAGE_PROTO_SRCS})
 add_library(poly ${SRCS})
 
 # Testing.
