@@ -52,7 +52,15 @@ class ComparisonWindow : public util::Window {
     image_mutex.unlock();
   }
   
- private:
+ protected:
+  virtual void HandleKey(unsigned int state, unsigned int keycode) {
+    switch (keycode) {
+      case 39:  // 's'
+        std::cout << "Saving the image." << std::endl;
+        break;
+    }
+  }
+  
   virtual void Draw() {
     // Clear the screen.
     glClear(GL_COLOR_BUFFER_BIT);

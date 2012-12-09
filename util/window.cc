@@ -149,9 +149,12 @@ void Window::RunUIThread() {
   // Attach the GLX context to our window.  This must be done in the thread
   // where we'll be doing our rendering.
   glXMakeCurrent(gl_win_->dpy, gl_win_->win, gl_win_->ctx);
+
+  ResizeGLScene();
   
   running_ = true;
   while (running_) {
+    // Handle any pending events.
     while (XPending(gl_win_->dpy) > 0) {
       XEvent event;
       XNextEvent(gl_win_->dpy, &event);
@@ -173,6 +176,9 @@ void Window::RunUIThread() {
             // from here.
             running_ = false;
           }
+          break;
+        case KeyPress:
+          HandleKey(event.xkey.state, event.xkey.keycode);
           break;
       }
     }

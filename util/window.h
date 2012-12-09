@@ -21,6 +21,11 @@ class Window {
   Window(const std::string& title, int width, int height);
   virtual ~Window();
 
+ protected:
+  // Methods to be overloaded by subclasses.
+  virtual void HandleKey(unsigned int state, unsigned int keycode) = 0;
+  virtual void Draw() = 0;
+  
  private:
   // Construct or destroy an OpenGL window.
   // TODO(piotrf): these both could be factored out.
@@ -38,9 +43,6 @@ class Window {
   // TODO(piotrf): this should probably be in some singleton
   // shared among all windows.
   void RunUIThread();
-
-  // Subclasses must overload this method to draw what they want.
-  virtual void Draw() = 0;
 
   GLWindow* gl_win_;
 
