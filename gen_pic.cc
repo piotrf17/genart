@@ -1,9 +1,10 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
-#include <boost/thread.hpp>
 #include <gflags/gflags.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -15,6 +16,7 @@
 #include "poly/polygon_effect.h"
 #include "poly/polygon_image.pb.h"
 #include "poly/util.h"
+#include "util/multi_thread_condition.h"
 #include "util/svg_writer.h"
 #include "util/window.h"
 
@@ -30,10 +32,11 @@ DEFINE_int32(display_step, 1,
 // image our effect has created.
 class ComparisonWindow : public util::Window {
  public:
-  ComparisonWindow() :
-      util::Window("GenPic", 640, 480) {
-    source_image = NULL;
-    effect_image = NULL;
+  ComparisonWindow(util::MultiThreadCondition* done_condition)
+      : util::Window("GenPic", 640, 480),
+        done_condition_(done_condition) {
+    source_image.reset(NULL);
+    effect_image.reset(NULL);
   }
   virtual ~ComparisonWindow() {}
   
@@ -53,6 +56,10 @@ class ComparisonWindow : public util::Window {
   }
   
  protected:
+  virtual void HandleClose() {
+    done_condition_->Notify();
+  }
+  
   virtual void HandleKey(unsigned int state, unsigned int keycode) {
     switch (keycode) {
       case 39:  // 's'
@@ -61,7 +68,7 @@ class ComparisonWindow : public util::Window {
     }
   }
   
-  virtual void Draw() {
+  virtual void HandleDraw() {
     // Clear the screen.
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -84,10 +91,13 @@ class ComparisonWindow : public util::Window {
     image_mutex.unlock();
   }
 
+ private:
   // The rendering class owns the actual image pixels.
-  boost::mutex image_mutex;
+  std::mutex image_mutex;
   std::unique_ptr<const image::Image> source_image;
   std::unique_ptr<const image::Image> effect_image;
+
+  util::MultiThreadCondition* done_condition_;
 };
 
 // A visitor class that updates our comparison window with the latest rendering.
@@ -112,6 +122,8 @@ int main(int argc, char** argv) {
     std::cout << "Failed to initialize thread support in xlib." << std::endl;
     return 1;
   }
+
+  util::MultiThreadCondition done_condition;
   
   // Create a new renderer.
   poly::PolygonEffect polygon_effect;
@@ -146,23 +158,35 @@ int main(int argc, char** argv) {
   std::unique_ptr<RenderProgress> render_progress;
   if (FLAGS_display_step > 0) {
     // Create a window for output.
-    window.reset(new ComparisonWindow());
+    window.reset(new ComparisonWindow(&done_condition));
     window->SetSourceImage(new image::Image(src_image));
     // Attach a visitor for rendering intermediate output.
     render_progress.reset(new RenderProgress(window.get()));
     polygon_effect.AddVisitor(FLAGS_display_step, render_progress.get());
   }
 
-  // Render the image!
   poly::output::PolygonImage output_polygons;
   polygon_effect.SetOutput(&output_polygons);
-  polygon_effect.Render();
 
-  // Save the image.
-  poly::SaveImageToFile(output_polygons, FLAGS_output_image);
+  // Render the image!
+  std::thread render_thread([&](){
+      polygon_effect.Render();
 
-  std::cout << "Finally, rendering finished." << std::endl;
-  getchar();
+      // Save to a file.
+      poly::SaveImageToFile(output_polygons, FLAGS_output_image);
+      
+      // Wait for keypress upon finish.
+      std::cout << "Finally, rendering finished." << std::endl;
+      getchar();
+
+      // Notify main thread that we've finished, that also shuts
+      // down the UI window.
+      done_condition.Notify();
+    });
+
+  // Either the UI thread will finish (user closes the window), or
+  // we'll finish rendering.
+  done_condition.Wait();
   
   return 0;
 }

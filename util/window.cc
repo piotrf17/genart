@@ -1,8 +1,9 @@
 #include "util/window.h"
 
+#include <iostream>
+
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include <boost/thread.hpp>
 
 namespace util {
 
@@ -23,7 +24,7 @@ Window::Window(const std::string& title, int width, int height) {
   InitGLScene();
   ResizeGLScene();
 
-  gui_thread_ = new boost::thread(&Window::RunUIThread, this);
+  gui_thread_ = new std::thread(&Window::RunUIThread, this);
 }
 
 Window::~Window() {
@@ -151,7 +152,7 @@ void Window::RunUIThread() {
   glXMakeCurrent(gl_win_->dpy, gl_win_->win, gl_win_->ctx);
 
   ResizeGLScene();
-  
+
   running_ = true;
   while (running_) {
     // Handle any pending events.
@@ -172,9 +173,7 @@ void Window::RunUIThread() {
         case ClientMessage:
           if (*XGetAtomName(gl_win_->dpy, event.xclient.message_type) ==
               *"WM_PROTOCOLS") {
-            // TODO(piotrf): figure out a way to shut down the window
-            // from here.
-            running_ = false;
+            HandleClose();
           }
           break;
         case KeyPress:
@@ -183,7 +182,7 @@ void Window::RunUIThread() {
       }
     }
 
-    Draw();
+    HandleDraw();
     
     glXSwapBuffers(gl_win_->dpy, gl_win_->win);
     

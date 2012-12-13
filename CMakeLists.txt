@@ -5,7 +5,7 @@ project(GENART)
 include_directories(${PROJECT_SOURCE_DIR})
 
 # Set some basic build flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Werror -std=c++0x")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -O2 -Wall -Werror -std=c++0x")
 
 ############################################################
 # Configure required libraries

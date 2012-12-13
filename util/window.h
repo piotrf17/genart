@@ -1,16 +1,14 @@
 // Abstract base class for an OpenGL window.  Handles initialization
-// via GLX and spins off a new thread that calls the Draw() function
+// via GLX and spins off a new thread that calls the HandleDraw() function
 // at a set interval.  Also handles resizing of the window.
 
 #ifndef GENART_UTIL_WINDOW_H
 #define GENART_UTIL_WINDOW_H
 
+#include <atomic>
 #include <string>
+#include <thread>
 #include <vector>
-
-namespace boost {
-  class thread;
-}
 
 namespace util {
 
@@ -20,11 +18,12 @@ class Window {
  public:
   Window(const std::string& title, int width, int height);
   virtual ~Window();
-
+  
  protected:
   // Methods to be overloaded by subclasses.
   virtual void HandleKey(unsigned int state, unsigned int keycode) = 0;
-  virtual void Draw() = 0;
+  virtual void HandleDraw() = 0;
+  virtual void HandleClose() = 0;
   
  private:
   // Construct or destroy an OpenGL window.
@@ -47,9 +46,9 @@ class Window {
   GLWindow* gl_win_;
 
   // TODO(piotrf): guard this behind a mutex.
-  bool running_;
+  std::atomic<bool> running_;
 
-  boost::thread* gui_thread_;
+  std::thread* gui_thread_;
 };
 
 }  // namespace util
