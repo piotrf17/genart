@@ -22,3 +22,9 @@ do
 
   echo "SIZE = $size, TIME = $average_time ms"
 done
+
+# Initial benchmark (x201, 2012/12/13):
+#   SIZE = 100, TIME = 400 ms
+#   SIZE = 200, TIME = 1450 ms
+#   SIZE = 400, TIME = 5249 ms
+#   SIZE = 800, TIME = 20744 ms
