@@ -1,0 +1,14 @@
+max_generations: 100
+mutation_params {
+  rates {
+    point_add: 5
+    point_delete: 5
+    point_move: 5
+    polygon_add: 1
+    polygon_delete: 1
+    polygon_move: 1
+    color_change: 10
+  }
+  max_polygons: 125
+  max_points_per_polygon: 10
+}
