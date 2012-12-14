@@ -1,3 +1,5 @@
+#include <chrono>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -27,6 +29,7 @@ DEFINE_string(effect_config, "",
 DEFINE_int32(display_step, 1,
              "Show current rendering side by side with image every this number "
              "of generations.  Set to 0 for no display");
+DEFINE_bool(benchmark, false, "Run as a benchmark");
 
 // A window that shows a side by side comparison of the original and the
 // image our effect has created.
@@ -168,6 +171,14 @@ int main(int argc, char** argv) {
   poly::output::PolygonImage output_polygons;
   polygon_effect.SetOutput(&output_polygons);
 
+  // If running as a benchmark, use a given random seed and time the
+  // rendering.
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  if (FLAGS_benchmark) {
+    srand(0);
+    start = std::chrono::high_resolution_clock::now();
+  }
+  
   // Render the image!
   std::thread render_thread([&](){
       polygon_effect.Render();
@@ -177,7 +188,7 @@ int main(int argc, char** argv) {
       
       // Wait for keypress upon finish.
       std::cout << "Finally, rendering finished." << std::endl;
-      getchar();
+      //      getchar();
 
       // Notify main thread that we've finished, that also shuts
       // down the UI window.
@@ -187,6 +198,14 @@ int main(int argc, char** argv) {
   // Either the UI thread will finish (user closes the window), or
   // we'll finish rendering.
   done_condition.Wait();
-  
+
+  if (FLAGS_benchmark) {
+    end = std::chrono::high_resolution_clock::now();
+    int duration_milli =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            end - start).count();
+    std::cout << "BENCHMARK (ms): " << duration_milli << std::endl;
+  }
+
   return 0;
 }

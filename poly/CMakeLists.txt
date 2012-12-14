@@ -22,3 +22,7 @@ if(BUILD_TESTING)
   target_link_libraries(polygon_mutator_test gtest_main poly util)
   add_test(PolygonMutatorTest ${PROJECT_BINARY_DIR}/poly/polygon_mutator_test)
 endif(BUILD_TESTING)
+
+# Benchmarks.
+add_executable(fitness_benchmark fitness_benchmark.cc)
+target_link_libraries(fitness_benchmark image poly pthread X11)
