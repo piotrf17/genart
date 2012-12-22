@@ -10,13 +10,15 @@
 
 namespace poly {
 
+// Necessary state for a GLX Pixmap based offline rendering window.
 struct OfflineGLWindow {
   Display* dpy;
   GLXPixmap glx_pixmap;
   GLXContext ctx;  
 };
 
-// Tessellated polygon rendering code.
+// Utility functions for tessellated polygon rendering.  These are passed
+// through as callbacks to the OpenGL tesselator.
 namespace tess {
 
 void Vertex(const GLvoid* data) {
@@ -28,6 +30,7 @@ void Error(GLenum error_code) {
   std::cout << "GLUTess error: " << gluErrorString(error_code) << std::endl;
 }
 
+// TODO(piotrf): Add a combine function.
 void Combine(const GLdouble coords[3],
              const GLdouble* vertex_data[4],
              const GLfloat weight[4],
@@ -36,23 +39,61 @@ void Combine(const GLdouble coords[3],
 
 } // namespace tess
 
-
-PolygonRender::PolygonRender(int width, int height)
-    : width_(width),
-      height_(height) {
-  win_ = new OfflineGLWindow;
+PolygonRender::PolygonRender() {
+  // Create a GL tesselator and callbacks.
+  tess_ = gluNewTess();
+  gluTessCallback(tess_, GLU_TESS_BEGIN, (void(*)())glBegin);
+  gluTessCallback(tess_, GLU_TESS_END, glEnd);  
+  gluTessCallback(tess_, GLU_TESS_VERTEX, (void(*)())tess::Vertex);
+  gluTessCallback(tess_, GLU_TESS_ERROR, (void(*)())tess::Error);
 }
 
 PolygonRender::~PolygonRender() {
-  glXMakeCurrent(win_->dpy, None, NULL);
-  glXDestroyContext(win_->dpy, win_->ctx);
-  delete win_;
   if (tess_) {
     gluDeleteTess(tess_);
   }
 }
 
-bool PolygonRender::Init() {
+void PolygonRender::Render(const std::vector<Polygon>& polygons,
+                           int width, int height) {
+  for (auto polygon_it = polygons.begin();
+       polygon_it != polygons.end(); ++polygon_it) {
+    double* vertex_buf = new double[3 * polygon_it->num_points()];
+    
+    const RGBA& c = polygon_it->color();
+    glColor4f(c.r, c.g, c.b, c.a);
+    
+    gluTessBeginPolygon(tess_, 0);
+    gluTessBeginContour(tess_);
+    int i = 0;
+    for (auto vertex_it = polygon_it->begin();
+         vertex_it != polygon_it->end(); ++vertex_it) {
+      vertex_buf[3*i] = width * vertex_it->x;
+      vertex_buf[3*i+1] = height * vertex_it->y;
+      vertex_buf[3*i+2] = 0;
+      gluTessVertex(tess_, vertex_buf + 3 * i, vertex_buf + 3 * i);
+      ++i;
+    }
+    gluTessEndContour(tess_);
+    gluTessEndPolygon(tess_);
+
+    delete[] vertex_buf;
+  }
+}
+
+OfflinePolygonRender::OfflinePolygonRender(int width, int height)
+    : width_(width),
+      height_(height) {
+  win_ = new OfflineGLWindow;
+}
+
+OfflinePolygonRender::~OfflinePolygonRender() {
+  glXMakeCurrent(win_->dpy, None, NULL);
+  glXDestroyContext(win_->dpy, win_->ctx);
+  delete win_;
+}
+
+bool OfflinePolygonRender::Init() {
   // Open a display connection to the X server.
   win_->dpy = XOpenDisplay(NULL);
   int screen = DefaultScreen(win_->dpy);
@@ -100,50 +141,21 @@ bool PolygonRender::Init() {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  // Create a GL tesselator and callbacks.
-  tess_ = gluNewTess();
-  gluTessCallback(tess_, GLU_TESS_BEGIN, (void(*)())glBegin);
-  gluTessCallback(tess_, GLU_TESS_END, glEnd);  
-  gluTessCallback(tess_, GLU_TESS_VERTEX, (void(*)())tess::Vertex);
-  gluTessCallback(tess_, GLU_TESS_ERROR, (void(*)())tess::Error);
-
   return true;
 }
 
-image::Image* PolygonRender::ToImage(const Genome& genome) {
+image::Image* OfflinePolygonRender::ToImage(
+    const std::vector<Polygon>& polygons) {
   glXMakeCurrent(win_->dpy, win_->glx_pixmap, win_->ctx);
   glClear(GL_COLOR_BUFFER_BIT);
-  
-  for (auto polygon_it = genome.begin();
-       polygon_it != genome.end(); ++polygon_it) {
-    double* vertex_buf = new double[3 * polygon_it->num_points()];
-    
-    const RGBA& c = polygon_it->color();
-    glColor4f(c.r, c.g, c.b, c.a);
-    
-    gluTessBeginPolygon(tess_, 0);
-    gluTessBeginContour(tess_);
-    int i = 0;
-    for (auto vertex_it = polygon_it->begin();
-         vertex_it != polygon_it->end(); ++vertex_it) {
-      vertex_buf[3*i] = width_ * vertex_it->x;
-      vertex_buf[3*i+1] = height_ * vertex_it->y;
-      vertex_buf[3*i+2] = 0;
-      gluTessVertex(tess_, vertex_buf + 3 * i, vertex_buf + 3 * i);
-      ++i;
-    }
-    gluTessEndContour(tess_);
-    gluTessEndPolygon(tess_);
 
-    delete[] vertex_buf;
-  }
-
+  render_.Render(polygons, width_, height_);
   
   // Read the image bytes into a new image object.
   unsigned char* pixels = new unsigned char[3 * width_ * height_];
 
   // For some reason, openGL is ignoring the pack alignment parameter,
-  // and insists onpacking alinged to 4 bytes.  So we make a copy
+  // and insists on packing aligned to 4 bytes.  So we make a copy
   // and do the realignment here.
   if (width_ % 4 == 0) {
     glReadPixels(0, 0, width_, height_, GL_RGB, GL_UNSIGNED_BYTE, pixels);

@@ -25,8 +25,8 @@ include_directories(${PROTOBUF_INCLUDE_DIR})
 find_package(Boost COMPONENTS thread REQUIRED)
 
 set(APP_LIBRARIES
-  image
   poly
+  image
   util
   gflags
   pthread
@@ -52,3 +52,7 @@ set(SRCS
   gen_pic.cc)
 add_executable(genpic ${SRCS})
 target_link_libraries(genpic ${APP_LIBRARIES})
+
+# slideshow
+add_executable(slideshow slideshow.cc)
+target_link_libraries(slideshow ${APP_LIBRARIES})

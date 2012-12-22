@@ -20,6 +20,7 @@ struct RGBA {
 class Polygon {
  public:
   Polygon();
+  Polygon(const std::vector<Point> points, const RGBA& color);
   ~Polygon();
 
   // Make a random triangle with CCW orientation, with size parameter h.
@@ -44,6 +45,8 @@ class Polygon {
   bool Convex() const;
 
   // Accessors.
+  // TODO(piotrf): these methods seem strange now, why not just expose
+  // a const view of the vector?
   std::vector<Point>::const_iterator begin() const {
     return points_.begin();
   }

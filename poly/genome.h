@@ -21,13 +21,10 @@ class Genome {
 
   void Mutate(const MutationParams& params);
 
-  std::vector<Polygon>::const_iterator begin() const {
-    return polygons_.begin();
+  const std::vector<Polygon>& polygons() const {
+    return polygons_;
   }
-  std::vector<Polygon>::const_iterator end() const {
-    return polygons_.end();
-  }
-
+  
  private:
 
   std::vector<Polygon> polygons_;

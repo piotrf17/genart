@@ -24,6 +24,7 @@
 
 DEFINE_string(input_image, "", "Source image for creation.");
 DEFINE_string(output_image, "", "Image to output upon finish.");
+DEFINE_string(output_poly, "", "If set, file to output raw polygons.");
 DEFINE_string(effect_config, "",
               "Optional file of parameters for the effect.");
 DEFINE_int32(display_step, 1,
@@ -184,7 +185,13 @@ int main(int argc, char** argv) {
       polygon_effect.Render();
 
       // Save to a file.
-      poly::SaveImageToFile(output_polygons, FLAGS_output_image);
+      if (!FLAGS_output_image.empty()) {
+        poly::SaveImageToFile(output_polygons, FLAGS_output_image);
+      }
+      if (!FLAGS_output_poly.empty()) {
+        std::ofstream output_file(FLAGS_output_poly);
+        output_polygons.SerializeToOstream(&output_file);
+      }
       
       // Wait for keypress upon finish.
       std::cout << "Finally, rendering finished." << std::endl;

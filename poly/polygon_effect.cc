@@ -10,31 +10,9 @@
 #include "poly/genome.h"
 #include "poly/polygon_image.pb.h"
 #include "poly/polygon_render.h"
+#include "poly/util.h"
 
 namespace poly {
-
-namespace {
-
-void GenomeToProto(const Genome& genome,
-                   output::PolygonImage* output) {
-  for (auto polygon_it = genome.begin();
-       polygon_it != genome.end(); ++polygon_it) {
-    auto* polygon = output->add_polygon();
-    for (auto vertex_it = polygon_it->begin();
-         vertex_it != polygon_it->end(); ++vertex_it) {
-      auto* point = polygon->add_point();
-      point->set_x(vertex_it->x);
-      point->set_y(vertex_it->y);
-    }
-    auto* color = polygon->mutable_color();
-    color->set_r(int(256 * polygon_it->color().r));
-    color->set_g(int(256 * polygon_it->color().g));
-    color->set_b(int(256 * polygon_it->color().b));
-    color->set_a(int(256 * polygon_it->color().a));
-  }
-}
-
-}  // namespace
 
 PolygonEffect::PolygonEffect() {
   // TODO(piotrf): Use a factory method.
@@ -65,7 +43,7 @@ void PolygonEffect::AddVisitor(int interval, EffectVisitor* visitor) {
 }
 
 void PolygonEffect::Render() {
-  PolygonRender render(input_->width(), input_->height());
+  OfflinePolygonRender render(input_->width(), input_->height());
   if (!render.Init()) {
     return;
   }
@@ -77,7 +55,7 @@ void PolygonEffect::Render() {
 
   // Calculate an initial fitness.
   std::unique_ptr<image::Image> image;
-  image.reset(render.ToImage(mother));
+  image.reset(render.ToImage(mother.polygons()));
   double last_fitness = fitness_->Evaluate(input_, image.get());
   std::cout << "Initial fitness = " << last_fitness << std::endl;
   double start_fitness = last_fitness;
@@ -90,7 +68,7 @@ void PolygonEffect::Render() {
     // Try a child mutation
     child = mother;
     child.Mutate(params_.mutation_params());
-    image.reset(render.ToImage(child));
+    image.reset(render.ToImage(child.polygons()));
     double child_fitness = fitness_->Evaluate(input_, image.get());
     if (child_fitness < last_fitness) {
       mother = child;
@@ -109,7 +87,7 @@ void PolygonEffect::Render() {
   }
   
   // Create the final output in a proto structure.
-  GenomeToProto(mother, output_);
+  VectorToPolygonProto(mother.polygons(), output_);
   output_->set_height(input_->height());
   output_->set_width(input_->width());
 }

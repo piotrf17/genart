@@ -20,6 +20,11 @@ namespace {
 Polygon::Polygon() {
 }
 
+Polygon::Polygon(const std::vector<Point> points, const RGBA& color)
+    : points_(points),
+      color_(color) {
+}
+
 Polygon::~Polygon() {
 }
 
