@@ -5,6 +5,7 @@ PROTOBUF_GENERATE_CPP(IMAGE_PROTO_SRCS IMAGE_PROTO_HDRS polygon_image.proto)
 
 # Poly library.
 set(SRCS
+  animated_polygon_image.cc
   fitness_l2_with_focii.cc
   genome.cc
   polygon.cc

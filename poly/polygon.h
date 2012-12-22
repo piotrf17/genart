@@ -14,6 +14,9 @@ namespace poly {
 class PolygonMutator;
   
 struct RGBA {
+  RGBA() {}
+  RGBA(double _r, double _g, double _b, double _a)
+      : r(_r), g(_g), b(_b), a(_a) {}
   double r, g, b, a;
 };
   

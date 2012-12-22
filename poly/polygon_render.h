@@ -13,6 +13,7 @@ namespace image {
 
 namespace poly {
 
+class AnimatedPolygonImage;
 class Polygon;
 struct OfflineGLWindow;
 
@@ -26,6 +27,9 @@ class PolygonRender {
   ~PolygonRender();
 
   void Render(const std::vector<Polygon>& polygons,
+              int width, int height);
+
+  void Render(const AnimatedPolygonImage& image,
               int width, int height);
   
  private:
