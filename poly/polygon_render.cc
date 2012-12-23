@@ -31,11 +31,21 @@ void Error(GLenum error_code) {
   std::cout << "GLUTess error: " << gluErrorString(error_code) << std::endl;
 }
 
-// TODO(piotrf): Add a combine function.
-void Combine(const GLdouble coords[3],
-             const GLdouble* vertex_data[4],
-             const GLfloat weight[4],
+void Combine(const GLdouble new_vert[3],
+             const GLdouble* neighbor_vert[4],
+             const GLfloat neighbor_weight[4],
              GLdouble** out_data) {
+  // TODO(piotrf): figure out a better way to deal with the ugliness
+  // of memory managing combine.
+  static GLdouble combine_data[64][3];
+  static int combine_vertex = 0;
+
+  combine_vertex = (combine_vertex + 1) % 64;
+  combine_data[combine_vertex][0] = new_vert[0];
+  combine_data[combine_vertex][1] = new_vert[1];
+  combine_data[combine_vertex][2] = new_vert[2];
+  
+  *out_data = combine_data[combine_vertex];
 }
 
 } // namespace tess
@@ -47,6 +57,7 @@ PolygonRender::PolygonRender() {
   gluTessCallback(tess_, GLU_TESS_END, glEnd);  
   gluTessCallback(tess_, GLU_TESS_VERTEX, (void(*)())tess::Vertex);
   gluTessCallback(tess_, GLU_TESS_ERROR, (void(*)())tess::Error);
+  gluTessCallback(tess_, GLU_TESS_COMBINE, (void(*)())tess::Combine);
 }
 
 PolygonRender::~PolygonRender() {
