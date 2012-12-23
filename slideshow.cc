@@ -3,7 +3,9 @@
 
 #include <GL/gl.h>
 
+#include "poly/animated_polygon_image.h"
 #include "poly/polygon.h"
+#include "poly/polygon_animator.h"
 #include "poly/polygon_image.pb.h"
 #include "poly/polygon_render.h"
 #include "poly/util.h"
@@ -11,9 +13,11 @@
 
 class MainWindow : public util::Window {
  public:
-  MainWindow(const std::vector<poly::Polygon>& image)
+  MainWindow(poly::AnimatedPolygonImage* image)
       : util::Window("Slideshow", 640, 480),
-        image_(image) {
+        image_(image),
+        t_(0.0) {
+    image_->SetTime(0.0);
   }
   virtual ~MainWindow() {}
 
@@ -31,14 +35,23 @@ class MainWindow : public util::Window {
     // TODO(piotrf): figure out why and only set it once.
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    render_.Render(image_, 300, 429);
+
+    t_ = std::min(1.0, t_ + 0.005);
+    image_->SetTime(t_);
+
+    // Eiffel: 300 x 429
+    // London: 429 x 270
+    render_.Render(*image_,
+                   static_cast<int>(300 * (1 - t_) + 429 * t_),
+                   static_cast<int>(429 * (1 - t_) + 270 * t_));
   }
 
  private:
   poly::PolygonRender render_;
 
-  const std::vector<poly::Polygon>& image_;
+  poly::AnimatedPolygonImage* image_;
+
+  double t_;
 };
 
 int main(int argc, char** argv) {
@@ -53,10 +66,16 @@ int main(int argc, char** argv) {
   std::cout << "image 1 has " << img1.polygon_size() << " polygons" << std::endl;
   std::cout << "image 2 has " << img2.polygon_size() << " polygons" << std::endl;
 
-  std::vector<poly::Polygon> image1;
+  std::vector<poly::Polygon> image1, image2;
   poly::PolygonProtoToVector(img1, &image1);
+  poly::PolygonProtoToVector(img2, &image2);
 
-  MainWindow window(image1);
+  poly::AnimatedPolygonImage* transition =
+      poly::PolygonAnimator::Animate(image1, image2);
+  
+  MainWindow window(transition);
 
   getchar();
+
+  delete transition;
 }

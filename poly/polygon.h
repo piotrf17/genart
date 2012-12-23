@@ -59,10 +59,14 @@ class Polygon {
   int num_points() const {
     return points_.size();
   }
+
+  const std::vector<Point> points() const {
+    return points_;
+  }
   const RGBA& color() const {
     return color_;
   }
-  
+
  private:
   
   std::vector<Point> points_;

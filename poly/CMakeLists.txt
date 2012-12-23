@@ -9,6 +9,7 @@ set(SRCS
   fitness_l2_with_focii.cc
   genome.cc
   polygon.cc
+  polygon_animator.cc
   polygon_effect.cc
   polygon_mutator.cc
   polygon_render.cc
