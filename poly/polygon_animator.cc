@@ -53,7 +53,7 @@ AnimatedPolygonImage* PolygonAnimator::Animate(
   std::vector<Polygon> start, end;
 
   std::vector<const Polygon*> map;
-  if (image1.size() > image2.size()) {
+  if (image1.size() >= image2.size()) {
     for (unsigned int i = 0; i < image2.size(); ++i) {
       if (image1[i].num_points() == image2[i].num_points()) {
         start.push_back(image1[i]);
