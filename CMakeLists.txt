@@ -24,6 +24,9 @@ include_directories(${PROTOBUF_INCLUDE_DIR})
 # Boost
 find_package(Boost COMPONENTS thread REQUIRED)
 
+# OpenCV.
+find_package(OpenCV REQUIRED)
+
 set(APP_LIBRARIES
   poly
   image
@@ -56,3 +59,7 @@ target_link_libraries(genpic ${APP_LIBRARIES})
 # slideshow
 add_executable(slideshow slideshow.cc)
 target_link_libraries(slideshow ${APP_LIBRARIES})
+
+# gen_movie
+add_executable(genmovie gen_movie.cc)
+target_link_libraries(genmovie ${APP_LIBRARIES} ${OpenCV_LIBS})
