@@ -16,7 +16,8 @@ class MainWindow : public util::Window {
   MainWindow(poly::AnimatedPolygonImage* image)
       : util::Window("Slideshow", 640, 480),
         image_(image),
-        t_(0.0) {
+        t_(0.0),
+        t_pre(0.0) {
     image_->SetTime(0.0);
   }
   virtual ~MainWindow() {}
@@ -36,14 +37,17 @@ class MainWindow : public util::Window {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    t_ = std::min(1.0, t_ + 0.005);
+    if (t_pre < 1.0) {
+      t_pre += 0.01;
+    } else {
+      t_ = std::min(1.0, t_ + 0.01);
+    }
     image_->SetTime(t_);
 
-    // Eiffel: 300 x 429
-    // London: 429 x 270
-    render_.Render(*image_,
-                   static_cast<int>(300 * (1 - t_) + 429 * t_),
-                   static_cast<int>(429 * (1 - t_) + 270 * t_));
+    // Eiffel: 400 x 340
+    // London: 400 x 288
+    render_.Render(*image_, 400,
+                   static_cast<int>(340 * (1 - t_) + 288 * t_));
   }
 
  private:
@@ -51,16 +55,16 @@ class MainWindow : public util::Window {
 
   poly::AnimatedPolygonImage* image_;
 
-  double t_;
+  double t_, t_pre;
 };
 
 int main(int argc, char** argv) {
   poly::output::PolygonImage img1, img2;
 
-  std::ifstream infile1("/home/piotrf/Desktop/eiffel.poly");
+  std::ifstream infile1("/home/piotrf/Desktop/kitten-100.poly");
   img1.ParseFromIstream(&infile1);
 
-  std::ifstream infile2("/home/piotrf/Desktop/london.poly");
+  std::ifstream infile2("/home/piotrf/Desktop/puppy-100.poly");
   img2.ParseFromIstream(&infile2);
 
   std::cout << "image 1 has " << img1.polygon_size() << " polygons" << std::endl;
