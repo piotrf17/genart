@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 #include <GL/gl.h>
 
@@ -11,10 +12,10 @@
 #include "poly/util.h"
 #include "util/window.h"
 
-class MainWindow : public util::Window {
+class MainWindow : public util::Window2d {
  public:
   MainWindow(poly::AnimatedPolygonImage* image)
-      : util::Window("Slideshow", 640, 480),
+      : util::Window2d(640, 480, "Slideshow"),
         image_(image),
         t_(0.0),
         t_pre(0.0) {
@@ -23,13 +24,15 @@ class MainWindow : public util::Window {
   virtual ~MainWindow() {}
 
  protected:
-  virtual void HandleClose() {
+  virtual void Keypress(unsigned int key) {
+    switch (key) {
+      case XK_Escape:
+        Close();
+        break;
+    }
   }
 
-  virtual void HandleKey(unsigned int state, unsigned int keycode) {
-  }
-
-  virtual void HandleDraw() {
+  virtual void Draw() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     // For some reason this gets reset after every frame.
@@ -74,12 +77,9 @@ int main(int argc, char** argv) {
   poly::PolygonProtoToVector(img1, &image1);
   poly::PolygonProtoToVector(img2, &image2);
 
-  poly::AnimatedPolygonImage* transition =
-      poly::PolygonAnimator::Animate(image1, image2);
+  std::unique_ptr<poly::AnimatedPolygonImage>transition(
+      poly::PolygonAnimator::Animate(image1, image2));
   
-  MainWindow window(transition);
-
-  getchar();
-
-  delete transition;
+  MainWindow window(transition.get());
+  window.Run();
 }

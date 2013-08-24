@@ -1,6 +1,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -34,10 +35,10 @@ DEFINE_bool(benchmark, false, "Run as a benchmark");
 
 // A window that shows a side by side comparison of the original and the
 // image our effect has created.
-class ComparisonWindow : public util::Window {
+class ComparisonWindow : public util::Window2d {
  public:
   ComparisonWindow(util::MultiThreadCondition* done_condition)
-      : util::Window("GenPic", 640, 480),
+      : util::Window2d(640, 480, "GenPic"),
         done_condition_(done_condition) {
     source_image.reset(NULL);
     effect_image.reset(NULL);
@@ -59,20 +60,16 @@ class ComparisonWindow : public util::Window {
     image_mutex.unlock();
   }
   
- protected:
-  virtual void HandleClose() {
-    done_condition_->Notify();
-  }
-  
-  virtual void HandleKey(unsigned int state, unsigned int keycode) {
-    switch (keycode) {
-      case 39:  // 's'
+ protected:  
+  virtual void Keypress(unsigned int key) {
+    switch (key) {
+      case XK_s:  // 's'
         std::cout << "Saving the image." << std::endl;
         break;
     }
   }
   
-  virtual void HandleDraw() {
+  virtual void Draw() {
     // Clear the screen.
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -123,7 +120,7 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
 
   if (XInitThreads() == 0) {
-    std::cout << "Failed to initialize thread support in xlib." << std::endl;
+    std::cerr << "Failed to initialize thread support in xlib." << std::endl;
     return 1;
   }
 
@@ -143,7 +140,7 @@ int main(int argc, char** argv) {
   if (FLAGS_effect_config != "") {
     std::ifstream config_file(FLAGS_effect_config.c_str());
     if (!config_file.is_open()) {
-      std::cout << "ERROR: couldn't open effect config file: "
+      std::cerr << "ERROR: couldn't open effect config file: "
                 << FLAGS_effect_config << std::endl;
       return 1;
     }
@@ -151,7 +148,7 @@ int main(int argc, char** argv) {
     if (!google::protobuf::TextFormat::Parse(
             &config_stream,
             &effect_params)) {
-      std::cout << "ERROR: failed to parse config file." << std::endl;
+      std::cerr << "ERROR: failed to parse config file." << std::endl;
       return 1;
     }
   }
@@ -160,6 +157,7 @@ int main(int argc, char** argv) {
   // Set a hook for a window to display output.
   std::unique_ptr<ComparisonWindow> window;
   std::unique_ptr<RenderProgress> render_progress;
+  std::unique_ptr<std::thread> render_thread;
   if (FLAGS_display_step > 0) {
     // Create a window for output.
     window.reset(new ComparisonWindow(&done_condition));
@@ -167,6 +165,8 @@ int main(int argc, char** argv) {
     // Attach a visitor for rendering intermediate output.
     render_progress.reset(new RenderProgress(window.get()));
     polygon_effect.AddVisitor(FLAGS_display_step, render_progress.get());
+    // Start the rendering thread.
+    render_thread.reset(new std::thread(&ComparisonWindow::Run, window.get()));
   }
 
   poly::output::PolygonImage output_polygons;
@@ -181,30 +181,18 @@ int main(int argc, char** argv) {
   }
   
   // Render the image!
-  std::thread render_thread([&](){
-      polygon_effect.Render();
+  polygon_effect.Render();
 
-      // Save to a file.
-      if (!FLAGS_output_image.empty()) {
-        poly::SaveImageToFile(output_polygons, FLAGS_output_image);
-      }
-      if (!FLAGS_output_poly.empty()) {
-        std::ofstream output_file(FLAGS_output_poly);
-        output_polygons.SerializeToOstream(&output_file);
-      }
-      
-      // Wait for keypress upon finish.
-      std::cout << "Finally, rendering finished." << std::endl;
-      //      getchar();
+  // Save to a file.
+  if (!FLAGS_output_image.empty()) {
+    poly::SaveImageToFile(output_polygons, FLAGS_output_image);
+  }
+  if (!FLAGS_output_poly.empty()) {
+    std::ofstream output_file(FLAGS_output_poly);
+    output_polygons.SerializeToOstream(&output_file);
+  }
 
-      // Notify main thread that we've finished, that also shuts
-      // down the UI window.
-      done_condition.Notify();
-    });
-
-  // Either the UI thread will finish (user closes the window), or
-  // we'll finish rendering.
-  done_condition.Wait();
+  std::cout << "Finally, rendering finished." << std::endl;
 
   if (FLAGS_benchmark) {
     end = std::chrono::high_resolution_clock::now();
