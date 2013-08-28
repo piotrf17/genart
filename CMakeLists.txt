@@ -37,7 +37,8 @@ set(APP_LIBRARIES
   GLU
   X11
   ${PROTOBUF_LIBRARIES}
-  ${Boost_THREAD_LIBRARY})
+  ${Boost_THREAD_LIBRARY}
+  ${OpenCV_LIBS})
 
 ############################################################
 # Build targets
@@ -62,4 +63,4 @@ target_link_libraries(slideshow ${APP_LIBRARIES})
 
 # gen_movie
 add_executable(genmovie gen_movie.cc)
-target_link_libraries(genmovie ${APP_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(genmovie ${APP_LIBRARIES} )

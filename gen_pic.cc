@@ -19,7 +19,6 @@
 #include "poly/polygon_effect.h"
 #include "poly/polygon_image.pb.h"
 #include "poly/util.h"
-#include "util/multi_thread_condition.h"
 #include "util/svg_writer.h"
 #include "util/window.h"
 
@@ -37,27 +36,26 @@ DEFINE_bool(benchmark, false, "Run as a benchmark");
 // image our effect has created.
 class ComparisonWindow : public util::Window2d {
  public:
-  ComparisonWindow(util::MultiThreadCondition* done_condition)
-      : util::Window2d(640, 480, "GenPic"),
-        done_condition_(done_condition) {
-    source_image.reset(NULL);
-    effect_image.reset(NULL);
+  ComparisonWindow()
+      : util::Window2d(640, 480, "GenPic") {
+    source_image_.reset(NULL);
+    effect_image_.reset(NULL);
   }
   virtual ~ComparisonWindow() {}
   
 
   // This takes ownership of the image!
   void SetSourceImage(const image::Image* image) {
-    image_mutex.lock();
-    source_image.reset(image);
-    image_mutex.unlock();
+    image_mutex_.lock();
+    source_image_.reset(image);
+    image_mutex_.unlock();
   }
 
   // This takes ownership of the image!
   void SetEffectImage(const image::Image* image) {
-    image_mutex.lock();
-    effect_image.reset(image);
-    image_mutex.unlock();
+    image_mutex_.lock();
+    effect_image_.reset(image);
+    image_mutex_.unlock();
   }
   
  protected:  
@@ -68,37 +66,88 @@ class ComparisonWindow : public util::Window2d {
         break;
     }
   }
-  
+
   virtual void Draw() {
     // Clear the screen.
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (NULL == source_image || NULL == effect_image) {
+    if (NULL == source_image_ || NULL == effect_image_) {
       return;
     }
 
-    image_mutex.lock();
+    image_mutex_.lock();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glRasterPos2i(0, 0);
-    glDrawPixels(source_image->width(),
-                 source_image->height(),
-                 GL_RGB, GL_UNSIGNED_BYTE,
-                 source_image->pixels());
-    glRasterPos2i(source_image->width(), 0);
-    glDrawPixels(effect_image->width(),
-                 effect_image->height(),
-                 GL_RGB, GL_UNSIGNED_BYTE,
-                 effect_image->pixels());
-    image_mutex.unlock();
+    if (GetBestOrientation() == HORIZONTAL) {
+      float scale = GetBestScaling(2 * source_image_->width(),
+                                   source_image_->height());
+      glRasterPos2i(0, 0);
+      glPixelZoom(scale, scale);
+      glDrawPixels(source_image_->width(),
+                   source_image_->height(),
+                   GL_RGB, GL_UNSIGNED_BYTE,
+                   source_image_->pixels());
+      glRasterPos2i(scale * source_image_->width(), 0);
+      glDrawPixels(effect_image_->width(),
+                   effect_image_->height(),
+                   GL_RGB, GL_UNSIGNED_BYTE,
+                   effect_image_->pixels());
+    } else {
+      float scale = GetBestScaling(source_image_->width(),
+                                   2 * source_image_->height());
+      glRasterPos2i(0, 0);
+      glPixelZoom(scale, scale);
+      glDrawPixels(source_image_->width(),
+                   source_image_->height(),
+                   GL_RGB, GL_UNSIGNED_BYTE,
+                   source_image_->pixels());
+      glRasterPos2i(0, scale * source_image_->height());
+      glDrawPixels(effect_image_->width(),
+                   effect_image_->height(),
+                   GL_RGB, GL_UNSIGNED_BYTE,
+                   effect_image_->pixels());
+    }
+    image_mutex_.unlock();
   }
 
  private:
-  // The rendering class owns the actual image pixels.
-  std::mutex image_mutex;
-  std::unique_ptr<const image::Image> source_image;
-  std::unique_ptr<const image::Image> effect_image;
+  enum Orientation {
+    VERTICAL,
+    HORIZONTAL,
+  };
 
-  util::MultiThreadCondition* done_condition_;
+  float GetBestScaling(int image_width, int image_height) {
+    float window_aspect = static_cast<float>(width()) / height();
+    float image_aspect = static_cast<float>(image_width) / image_height;
+    if (window_aspect > image_aspect) {
+      return static_cast<float>(height()) / image_height;
+    } else {
+      return static_cast<float>(width()) / image_width;
+    }
+  }
+
+  float GetWindowFill(float window_aspect, float image_aspect) {
+    if (window_aspect > image_aspect) {
+      return image_aspect / window_aspect;
+    } else {
+      return window_aspect / image_aspect;
+    }
+  }
+
+  Orientation GetBestOrientation() {
+    float window_aspect = static_cast<float>(width()) / height();
+    float vertical_aspect = static_cast<float>(source_image_->width()) /
+        (2 * source_image_->height());
+    float horizontal_aspect = (2.0 * source_image_->width()) /
+        source_image_->height();
+    return (GetWindowFill(window_aspect, vertical_aspect) >
+            GetWindowFill(window_aspect, horizontal_aspect)) ?
+        VERTICAL : HORIZONTAL;
+  }
+  
+  // The rendering class owns the actual image pixels.
+  std::mutex image_mutex_;
+  std::unique_ptr<const image::Image> source_image_;
+  std::unique_ptr<const image::Image> effect_image_;
 };
 
 // A visitor class that updates our comparison window with the latest rendering.
@@ -124,8 +173,6 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  util::MultiThreadCondition done_condition;
-  
   // Create a new renderer.
   poly::PolygonEffect polygon_effect;
 
@@ -160,7 +207,7 @@ int main(int argc, char** argv) {
   std::unique_ptr<std::thread> render_thread;
   if (FLAGS_display_step > 0) {
     // Create a window for output.
-    window.reset(new ComparisonWindow(&done_condition));
+    window.reset(new ComparisonWindow());
     window->SetSourceImage(new image::Image(src_image));
     // Attach a visitor for rendering intermediate output.
     render_progress.reset(new RenderProgress(window.get()));

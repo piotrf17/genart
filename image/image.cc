@@ -1,6 +1,7 @@
 #include "image/image.h"
 
 #include <CImg.h>
+#include <opencv2/opencv.hpp>
 
 namespace image {
 
@@ -30,6 +31,26 @@ Image::Image(const std::string& filename) {
   }
 }
 
+Image::Image(const cv::Mat& cv_image) {
+  width_ = cv_image.cols;
+  height_ = cv_image.rows;
+  pixels_ = new unsigned char[3 * width_ * height_];
+  
+  const uint8_t* cv_data = static_cast<const uint8_t*>(cv_image.data);
+  const int channels = cv_image.channels();
+  
+  // OpenCV uses BGR instead of RGB :(
+  for (int i = 0; i < height_; ++i) {
+    for (int j = 0; j < width_; ++j) {
+      const int gl_pixel = i * width_ + j;
+      const int cv_pixel = (height_ - i - 1) * width_ + j;
+      pixels_[3 * gl_pixel + 0] = cv_data[channels * cv_pixel + 2];
+      pixels_[3 * gl_pixel + 1] = cv_data[channels * cv_pixel + 1];
+      pixels_[3 * gl_pixel + 2] = cv_data[channels * cv_pixel + 0];
+    }
+  }
+}
+
 Image::Image(unsigned char* pixels, int width, int height)
     : width_(width),
       height_(height),
@@ -42,6 +63,13 @@ Image::Image(const Image& image) {
   const int byte_size = 3 * width_ * height_;
   pixels_ = new unsigned char[byte_size];
   memcpy(pixels_, image.pixels_, byte_size);
+}
+
+Image::Image(Image&& image)
+    : width_(image.width_),
+      height_(image.height_),
+      pixels_(image.pixels_) {
+  image.pixels_ = nullptr;
 }
 
 Image::~Image() {

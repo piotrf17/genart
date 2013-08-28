@@ -3,6 +3,10 @@
 
 #include <string>
 
+namespace cv {
+  class Mat;
+}  // namespace cv
+
 namespace image {
 
 class Image {
@@ -11,11 +15,15 @@ class Image {
   // to load jpg, png, bmp, etc.
   explicit Image(const std::string& filename);
 
+  // Initialize from an OpenCV Mat type.
+  explicit Image(const cv::Mat& cv_image);
+
   // Initialize from an array of pixels, the Image object takes ownership
   // of the array.
   Image(unsigned char* pixels, int width, int height);
 
-  Image(const Image& image);  
+  Image(const Image& image);
+  Image(Image&& image);
   ~Image();
 
   int width() const;
