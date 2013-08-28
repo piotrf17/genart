@@ -4,93 +4,22 @@
 #include <thread>
 
 #include <gflags/gflags.h>
-#include <GL/gl.h>
 #include <GL/glx.h>
 #include <opencv2/opencv.hpp>
 
+#include "comparison_window.h"
 #include "image/image.h"
-#include "poly/effect_visitor.h"
 #include "poly/polygon_effect.h"
 #include "poly/polygon_image.pb.h"
 #include "poly/util.h"
-#include "util/window.h"
 
 DEFINE_string(input_movie, "", "Source movie.");
 DEFINE_int32(display_step, 1,
              "Show current rendering side by side with image every this number "
              "of generations.  Set to 0 for no display.");
 
-class ComparisonWindow : public util::Window2d {
- public:
-  ComparisonWindow() : util::Window2d(640, 480, "GenMovies") {
-    source_image.reset(nullptr);
-    effect_image.reset(nullptr);
-  }
-  virtual ~ComparisonWindow() {}
-
-  // This takes ownership of the image!
-  void SetSourceImage(const image::Image* image) {
-    image_mutex.lock();
-    source_image.reset(image);
-    image_mutex.unlock();
-  }
-
-  // This takes ownership of the image!
-  void SetEffectImage(const image::Image* image) {
-    image_mutex.lock();
-    effect_image.reset(image);
-    image_mutex.unlock();
-  }
-
- protected:
-  virtual void Keypress(unsigned int key) {
-  }
-
-  virtual void Draw() {
-    // Clear the screen.
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    if (nullptr == source_image || nullptr == effect_image) {
-      return;
-    }
-
-    image_mutex.lock();
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glRasterPos2i(0, 0);
-    glDrawPixels(source_image->width(),
-                 source_image->height(),
-                 GL_RGB, GL_UNSIGNED_BYTE,
-                 source_image->pixels());
-    glRasterPos2i(source_image->width(), 0);
-    glDrawPixels(effect_image->width(),
-                 effect_image->height(),
-                 GL_RGB, GL_UNSIGNED_BYTE,
-                 effect_image->pixels());
-    image_mutex.unlock();
-  }
-
- private:
-  // The rendering class owns the actual image pixels.
-  std::mutex image_mutex;
-  std::unique_ptr<const image::Image> source_image;
-  std::unique_ptr<const image::Image> effect_image;
-};
-
-// A visitor class that updates our comparison window with the latest rendering.
-class RenderProgressVisitor : public poly::EffectVisitor {
- public:
-  explicit RenderProgressVisitor(ComparisonWindow* window)
-      : window_(window) {
-  }
-  
-  virtual void Visit(const image::Image& latest) {
-    window_->SetEffectImage(new image::Image(latest));
-  }
-
- private:
-  ComparisonWindow* window_;
-};
-
+using genart::ComparisonWindow;
+using genart::RenderProgressVisitor;
 
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);

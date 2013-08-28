@@ -1,6 +1,10 @@
 #ifndef POLY_EFFECT_VISITOR_H
 #define POLY_EFFECT_VISITOR_H
 
+namespace image {
+class Image;
+}  // namespace image
+
 namespace poly {
 
 class EffectVisitor {

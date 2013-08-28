@@ -52,9 +52,10 @@ add_subdirectory(util)
 include_directories(${PROJECT_BINARY_DIR})
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS poly/params.proto)
 
-set(SRCS
+set(GENPIC_SRCS
+  comparison_window.cc
   gen_pic.cc)
-add_executable(genpic ${SRCS})
+add_executable(genpic ${GENPIC_SRCS})
 target_link_libraries(genpic ${APP_LIBRARIES})
 
 # slideshow
@@ -62,5 +63,8 @@ add_executable(slideshow slideshow.cc)
 target_link_libraries(slideshow ${APP_LIBRARIES})
 
 # gen_movie
-add_executable(genmovie gen_movie.cc)
+set(GENMOVIE_SRCS
+  comparison_window.cc
+  gen_movie.cc)
+add_executable(genmovie ${GENMOVIE_SRCS})
 target_link_libraries(genmovie ${APP_LIBRARIES} )
