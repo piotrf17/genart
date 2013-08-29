@@ -12,8 +12,10 @@
 #include "poly/polygon_effect.h"
 #include "poly/polygon_image.pb.h"
 #include "poly/util.h"
+#include "util/recordio.h"
 
 DEFINE_string(input_movie, "", "Source movie.");
+DEFINE_string(output_movie, "", "Desired path of movie to output.");
 DEFINE_int32(display_step, 1,
              "Show current rendering side by side with image every this number "
              "of generations.  Set to 0 for no display.");
@@ -47,6 +49,9 @@ int main(int argc, char** argv) {
     render_thread.reset(new std::thread(&ComparisonWindow::Run, window.get()));
   }
 
+  std::ofstream output_movie(FLAGS_output_movie);
+  util::RecordWriter record_writer(&output_movie);
+
   std::unique_ptr<poly::output::PolygonImage> last_frame_polygons;
   for (;;) {
     // Grab the next frame from the video.
@@ -66,7 +71,7 @@ int main(int argc, char** argv) {
     polygon_effect.SetInput(src_image.get());
     polygon_effect.SetOutput(output_polygons);
     poly::EffectParams effect_params;
-    effect_params.set_max_generations(1000);
+    effect_params.set_max_generations(100);
     polygon_effect.SetParams(effect_params);
 
     // Setup the comparison window for this effect.
@@ -80,6 +85,12 @@ int main(int argc, char** argv) {
       polygon_effect.Render();
     }
     last_frame_polygons.reset(output_polygons);
+
+    if (!record_writer.WriteProtocolMessage(*output_polygons)) {
+      std::cerr << "Failed to write movie frame!" << std::endl;
+      return 1;
+    }
+    output_movie.flush();
 
     getchar();
   }
