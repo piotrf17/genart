@@ -37,23 +37,17 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // Create a new renderer.
-  poly::PolygonEffect polygon_effect;
-
   // Set a hook for a window to display output.
   std::unique_ptr<ComparisonWindow> window;
   std::unique_ptr<RenderProgressVisitor> render_progress_visitor;
   std::unique_ptr<std::thread> render_thread;
   if (FLAGS_display_step > 0) {
     window.reset(new ComparisonWindow());
-    // Attach a visitor for rendering intermediate output.
     render_progress_visitor.reset(new RenderProgressVisitor(window.get()));
-    polygon_effect.AddVisitor(FLAGS_display_step,
-                              render_progress_visitor.get());
-    // Start the rendering thread.
     render_thread.reset(new std::thread(&ComparisonWindow::Run, window.get()));
   }
-  
+
+  std::unique_ptr<poly::output::PolygonImage> last_frame_polygons;
   for (;;) {
     // Grab the next frame from the video.
     if (!src_video.grab()) {
@@ -64,8 +58,28 @@ int main(int argc, char** argv) {
     src_video.retrieve(frame);
     std::unique_ptr<image::Image> src_image(new image::Image(frame));
 
+    poly::output::PolygonImage* output_polygons =
+        new poly::output::PolygonImage();
+
+    // Setup the effect.
+    poly::PolygonEffect polygon_effect;
+    polygon_effect.SetInput(src_image.get());
+    polygon_effect.SetOutput(output_polygons);
+    poly::EffectParams effect_params;
+    effect_params.set_max_generations(1000);
+    polygon_effect.SetParams(effect_params);
+
+    // Setup the comparison window for this effect.
     window->SetSourceImage(new image::Image(*src_image.get()));
-    window->SetEffectImage(new image::Image(*src_image.get()));
+    polygon_effect.AddVisitor(FLAGS_display_step,
+                              render_progress_visitor.get());
+
+    if (last_frame_polygons.get() != nullptr) {
+      polygon_effect.RenderFromInitial(*last_frame_polygons);
+    } else {
+      polygon_effect.Render();
+    }
+    last_frame_polygons.reset(output_polygons);
 
     getchar();
   }

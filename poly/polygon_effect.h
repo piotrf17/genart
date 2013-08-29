@@ -32,14 +32,19 @@ class PolygonEffect {
   PolygonEffect();
   ~PolygonEffect();
 
+  // TODO(piotrf): should these just be in the constructor?
   void SetInput(const image::Image* input);
   void SetOutput(output::PolygonImage* output);
 
   void SetParams(const EffectParams& params);
-  
+
+  // Add a visitor.  The Visit function will be called every interval steps.
   void AddVisitor(int interval, EffectVisitor* visitor);
 
+  // Render the effect, either from scratch, or from an initial set of polygons.
+  // The done condition must be specified in the provided effect params.
   void Render();
+  void RenderFromInitial(const output::PolygonImage& initial_polygons);
   
  private:
   // Rendering parameters.

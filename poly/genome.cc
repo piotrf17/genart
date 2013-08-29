@@ -14,6 +14,10 @@ namespace poly {
 Genome::Genome() {
 }
 
+Genome::Genome(const std::vector<Polygon> polygons)
+    : polygons_(polygons) {
+}
+
 Genome::~Genome() {
 }
 

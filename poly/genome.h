@@ -14,6 +14,7 @@ class MutationParams;
 class Genome {
  public:
   Genome();
+  explicit Genome(const std::vector<Polygon> polygons);
   ~Genome();
 
   void Randomize(const MutationParams& params,

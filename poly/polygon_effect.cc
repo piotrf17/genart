@@ -43,19 +43,27 @@ void PolygonEffect::AddVisitor(int interval, EffectVisitor* visitor) {
 }
 
 void PolygonEffect::Render() {
+  Genome mother;
+  mother.Randomize(params_.mutation_params(), 1);
+  output::PolygonImage initial_polygons;
+  VectorToPolygonProto(mother.polygons(), &initial_polygons);
+  RenderFromInitial(initial_polygons);
+}
+
+void PolygonEffect::RenderFromInitial(
+    const output::PolygonImage& initial_polygons) {
   OfflinePolygonRender render(input_->width(), input_->height());
   if (!render.Init()) {
     return;
   }
-  
-  Genome mother, child;
 
-  // Start with a 1 polygon random mother.
-  mother.Randomize(params_.mutation_params(), 1);
+  std::vector<Polygon> initial_vector;
+  PolygonProtoToVector(initial_polygons, &initial_vector);
+  Genome mother(initial_vector), child;
 
-  // Calculate an initial fitness.
+  // Calculate an initial fitness, based on a blank black image.
   std::unique_ptr<image::Image> image;
-  image.reset(render.ToImage(mother.polygons()));
+  image.reset(render.ToImage(child.polygons()));
   double last_fitness = fitness_->Evaluate(input_, image.get());
   std::cout << "Initial fitness = " << last_fitness << std::endl;
   double start_fitness = last_fitness;
@@ -91,6 +99,5 @@ void PolygonEffect::Render() {
   output_->set_height(input_->height());
   output_->set_width(input_->width());
 }
-
 
 }
