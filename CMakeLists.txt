@@ -22,7 +22,7 @@ find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
 # Boost
-find_package(Boost COMPONENTS thread REQUIRED)
+#find_package(Boost COMPONENTS thread REQUIRED)
 
 # OpenCV.
 find_package(OpenCV REQUIRED)
@@ -37,7 +37,7 @@ set(APP_LIBRARIES
   GLU
   X11
   ${PROTOBUF_LIBRARIES}
-  ${Boost_THREAD_LIBRARY}
+#  ${Boost_THREAD_LIBRARY}
   ${OpenCV_LIBS})
 
 ############################################################
