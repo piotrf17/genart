@@ -51,7 +51,8 @@ void PolygonEffect::Render() {
 }
 
 void PolygonEffect::RenderFromInitial(
-    const output::PolygonImage& initial_polygons) {
+    const output::PolygonImage& initial_polygons,
+    double initial_fitness_threshold) {
   OfflinePolygonRender render(input_->width(), input_->height());
   if (!render.Init()) {
     return;
@@ -63,13 +64,24 @@ void PolygonEffect::RenderFromInitial(
 
   // Calculate an initial fitness, based on a blank black image.
   std::unique_ptr<image::Image> image;
+  std::unique_ptr<image::Image> best_image;
   image.reset(render.ToImage(child.polygons()));
   double last_fitness = fitness_->Evaluate(input_, image.get());
   std::cout << "Initial fitness = " << last_fitness << std::endl;
   double start_fitness = last_fitness;
-  
+
+  // Check if our initial polygons pass the initial threshold, and if not
+  // reset the mother to be a random polygon.
+  if (initial_fitness_threshold < 1.0) {
+    image.reset(render.ToImage(mother.polygons()));
+    if (initial_fitness_threshold * start_fitness <
+        fitness_->Evaluate(input_, image.get())) {
+      mother.Randomize(params_.mutation_params(), 1);
+    }
+  }
+
   for (int i = 0; i < params_.max_generations(); ++i) {
-    if (i % 10 == 0) {
+    if (i % 100 == 0) {
       std::cout << "**Generation " << i << std::endl;
     }
 
@@ -81,15 +93,25 @@ void PolygonEffect::RenderFromInitial(
     if (child_fitness < last_fitness) {
       mother = child;
       last_fitness = child_fitness;
+      best_image.reset(new image::Image(*image));
     }
-    if (i % 10 == 0) {
+    if (i % 100 == 0) {
       std::cout << "fitness = " << last_fitness << " frac initial = "
                 << last_fitness / start_fitness << std::endl;
     }
 
+    if (params_.has_fitness_threshold() &&
+        last_fitness <= start_fitness * params_.fitness_threshold()) {
+      std::cout << "fitness = " << last_fitness << " frac initial = "
+                << last_fitness / start_fitness
+                << " which is under threshold of "
+                << params_.fitness_threshold() << " -> FINISHED." << std::endl;
+      break;
+    }
+
     for (auto it = visitors_.begin(); it != visitors_.end(); ++it) {
       if (i % it->interval == 0) {
-        it->visitor->Visit(*image);
+        it->visitor->Visit(*best_image);
       }
     }
   }

@@ -67,6 +67,10 @@ message EffectParams {
   // Maximum generations to run algorithm.
   optional int32 max_generations = 1;
 
+  // If set, run algorithm until fitness (from 0 to 1) drops below this
+  // threshold.  A reasonable value is probably between 0.1 and 0.2.
+  optional double fitness_threshold = 2;
+  
   // Mutation rates.
   optional MutationParams mutation_params = 3;
 

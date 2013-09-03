@@ -76,6 +76,23 @@ Image::~Image() {
   delete[] pixels_;
 }
 
+Image& Image::operator= (const Image& image) {
+  width_ = image.width_;
+  height_ = image.height_;
+  const int byte_size = 3 * width_ * height_;
+  pixels_ = new unsigned char[byte_size];
+  memcpy(pixels_, image.pixels_, byte_size);
+  return *this;
+}
+
+Image& Image::operator= (Image&& image) {
+  width_ = image.width_;
+  height_ = image.height_;
+  pixels_ = image.pixels_;
+  image.pixels_ = nullptr;
+  return *this;
+}
+
 int Image::width() const {
   return width_;
 }

@@ -41,10 +41,16 @@ class PolygonEffect {
   // Add a visitor.  The Visit function will be called every interval steps.
   void AddVisitor(int interval, EffectVisitor* visitor);
 
-  // Render the effect, either from scratch, or from an initial set of polygons.
-  // The done condition must be specified in the provided effect params.
+  // Render the effect, using the specified parameters by SetParams.
+  // Specifically, the max generations and fitness threshold are ending
+  // conditions.  Start with a blank image.
   void Render();
-  void RenderFromInitial(const output::PolygonImage& initial_polygons);
+
+  // Same as above, but start with the given initial polygons, UNLESS their
+  // initial fitness is under initial_fitness_threshold, in which case start
+  // from a blank image.
+  void RenderFromInitial(const output::PolygonImage& initial_polygons,
+                         double initial_fitness_threshold = 1.0);
   
  private:
   // Rendering parameters.

@@ -24,8 +24,12 @@ class Image {
 
   Image(const Image& image);
   Image(Image&& image);
+  
   ~Image();
 
+  Image& operator= (const Image& image);
+  Image& operator= (Image&& image);
+  
   int width() const;
   int height() const;
 
@@ -33,8 +37,6 @@ class Image {
   unsigned char* mutable_pixels();
 
  private:
-  Image& operator=(const Image&);
-
   int width_, height_;
   unsigned char* pixels_;
 };

@@ -129,12 +129,17 @@ OfflinePolygonRender::OfflinePolygonRender(int width, int height)
 OfflinePolygonRender::~OfflinePolygonRender() {
   glXMakeCurrent(win_->dpy, None, NULL);
   glXDestroyContext(win_->dpy, win_->ctx);
+  XCloseDisplay(win_->dpy);
   delete win_;
 }
 
 bool OfflinePolygonRender::Init() {
   // Open a display connection to the X server.
-  win_->dpy = XOpenDisplay(NULL);
+  win_->dpy = XOpenDisplay(nullptr);
+  if (win_->dpy == nullptr) {
+    std::cerr << "ERROR: Failed to connect to the X server" << std::endl;
+    return false;
+  }
   int screen = DefaultScreen(win_->dpy);
 
   // Choose a single buffered visual.

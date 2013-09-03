@@ -16,9 +16,14 @@
 
 DEFINE_string(input_movie, "", "Source movie.");
 DEFINE_string(output_movie, "", "Desired path of movie to output.");
-DEFINE_int32(display_step, 1,
+DEFINE_int32(display_step, 100,
              "Show current rendering side by side with image every this number "
              "of generations.  Set to 0 for no display.");
+DEFINE_double(frame_finish_threshold, 0.25,
+              "Fitness ratio threshold to consider a frame done.");
+DEFINE_double(frame_restart_threshold, 0.32,
+              "Initial fitness ratio, above which we restart a frame from "
+              "scratch, instead of using the previous frame.");
 
 using genart::ComparisonWindow;
 using genart::RenderProgressVisitor;
@@ -71,7 +76,8 @@ int main(int argc, char** argv) {
     polygon_effect.SetInput(src_image.get());
     polygon_effect.SetOutput(output_polygons);
     poly::EffectParams effect_params;
-    effect_params.set_max_generations(100);
+    effect_params.set_max_generations(1000000);
+    effect_params.set_fitness_threshold(FLAGS_frame_finish_threshold);
     polygon_effect.SetParams(effect_params);
 
     // Setup the comparison window for this effect.
@@ -80,7 +86,8 @@ int main(int argc, char** argv) {
                               render_progress_visitor.get());
 
     if (last_frame_polygons.get() != nullptr) {
-      polygon_effect.RenderFromInitial(*last_frame_polygons);
+      polygon_effect.RenderFromInitial(*last_frame_polygons,
+                                       FLAGS_frame_restart_threshold);
     } else {
       polygon_effect.Render();
     }
@@ -91,8 +98,6 @@ int main(int argc, char** argv) {
       return 1;
     }
     output_movie.flush();
-
-    getchar();
   }
 
   return 0;
