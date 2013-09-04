@@ -69,6 +69,10 @@ set(GENMOVIE_SRCS
 add_executable(genmovie ${GENMOVIE_SRCS})
 target_link_libraries(genmovie ${APP_LIBRARIES})
 
+# gen_convert
+add_executable(genconvert gen_convert.cc)
+target_link_libraries(genconvert ${APP_LIBRARIES})
+
 # movie player
 # TODO(piotrf): make a generic player/view for polygon images and movies.
 # It should also be able to convert from them to actual images/movies.

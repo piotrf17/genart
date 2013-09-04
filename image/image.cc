@@ -93,6 +93,26 @@ Image& Image::operator= (Image&& image) {
   return *this;
 }
 
+cv::Mat Image::ToMat() const {
+  cv::Mat cv_image(height_, width_, CV_8UC3);
+
+  uint8_t* cv_data = static_cast<uint8_t*>(cv_image.data);
+  const int channels = cv_image.channels();
+
+  // OpenCV uses BGR instead of RGB :(
+  for (int i = 0; i < height_; ++i) {
+    for (int j = 0; j < width_; ++j) {
+      const int gl_pixel = i * width_ + j;
+      const int cv_pixel = (height_ - i - 1) * width_ + j;
+      cv_data[channels * cv_pixel + 2] = pixels_[3 * gl_pixel + 0];
+      cv_data[channels * cv_pixel + 1] = pixels_[3 * gl_pixel + 1];
+      cv_data[channels * cv_pixel + 0] = pixels_[3 * gl_pixel + 2];
+    }
+  }
+
+  return cv_image;
+}
+
 int Image::width() const {
   return width_;
 }

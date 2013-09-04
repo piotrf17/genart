@@ -22,6 +22,7 @@ class Image {
   // of the array.
   Image(unsigned char* pixels, int width, int height);
 
+  // Various constructors / destructors / assignment operators.
   Image(const Image& image);
   Image(Image&& image);
   
@@ -29,7 +30,11 @@ class Image {
 
   Image& operator= (const Image& image);
   Image& operator= (Image&& image);
-  
+
+  // Converting to other formats.
+  cv::Mat ToMat() const;
+
+  // Accessors.
   int width() const;
   int height() const;
 

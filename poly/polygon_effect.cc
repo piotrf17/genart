@@ -66,6 +66,7 @@ void PolygonEffect::RenderFromInitial(
   std::unique_ptr<image::Image> image;
   std::unique_ptr<image::Image> best_image;
   image.reset(render.ToImage(child.polygons()));
+  best_image.reset(new image::Image(*image));
   double last_fitness = fitness_->Evaluate(input_, image.get());
   std::cout << "Initial fitness = " << last_fitness << std::endl;
   double start_fitness = last_fitness;
@@ -74,8 +75,12 @@ void PolygonEffect::RenderFromInitial(
   // reset the mother to be a random polygon.
   if (initial_fitness_threshold < 1.0) {
     image.reset(render.ToImage(mother.polygons()));
+    double mother_fitness = fitness_->Evaluate(input_, image.get());
     if (initial_fitness_threshold * start_fitness <
-        fitness_->Evaluate(input_, image.get())) {
+        mother_fitness) {
+      std::cout << "fitness frac initial = " << mother_fitness / start_fitness
+                << " > threshold " << initial_fitness_threshold
+                << " -> starting fresh" << std::endl;
       mother.Randomize(params_.mutation_params(), 1);
     }
   }

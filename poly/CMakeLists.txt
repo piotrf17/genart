@@ -27,4 +27,4 @@ endif(BUILD_TESTING)
 
 # Benchmarks.
 add_executable(fitness_benchmark fitness_benchmark.cc)
-target_link_libraries(fitness_benchmark image poly pthread X11)
+target_link_libraries(fitness_benchmark image poly pthread X11 ${OpenCV_LIBS})
