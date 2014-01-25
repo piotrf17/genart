@@ -5,13 +5,17 @@
 
 #include "poly/polygon.h"
 
-namespace poly {
+namespace genart {
 
+namespace core {
 class MutationParams;
+}  // namespace core
+  
+namespace poly {
 
 class PolygonMutator {
  public:
-  explicit PolygonMutator(const MutationParams& params)
+  explicit PolygonMutator(const core::MutationParams& params)
       : params_(params) {}
   virtual ~PolygonMutator() {}
   
@@ -19,13 +23,13 @@ class PolygonMutator {
                           std::vector<Point>* points) const = 0;
 
  protected:
-  const MutationParams& params_;
+  const core::MutationParams& params_;
 };
 
 #define NEW_MUTATOR(mutator_name)                               \
   class mutator_name : public PolygonMutator {                  \
    public:                                                      \
-    explicit mutator_name(const MutationParams& params)         \
+    explicit mutator_name(const core::MutationParams& params)   \
         : PolygonMutator(params) {}                             \
     virtual ~mutator_name() {}                                  \
     virtual void operator()(Polygon* polygon,                   \
@@ -49,6 +53,7 @@ bool LineIntersect(const Point& p1, const Point& p2,
 
 }  // namespace internal
 
-}  // namespace poly    
+}  // namespace poly
+}  // namespace genart
 
 #endif

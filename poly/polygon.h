@@ -1,5 +1,5 @@
-#ifndef GENART_POLY_POLYGON_H
-#define GENART_POLY_POLYGON_H
+#ifndef GENART_POLY_POLYGON_H_
+#define GENART_POLY_POLYGON_H_
 
 #include <vector>
 
@@ -9,6 +9,7 @@
 // for my function to compile :(
 #undef Convex
 
+namespace genart {
 namespace poly {
 
 class PolygonMutator;
@@ -73,6 +74,7 @@ class Polygon {
   RGBA color_;
 };
 
-} // namespace poly
+}  // namespace poly
+}  // namepsace genart
 
-#endif
+#endif  // GENART_POLY_POLYGON_H_

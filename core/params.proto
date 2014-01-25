@@ -1,6 +1,6 @@
 // Params for initializing renderer.
 
-package poly;
+package genart.core;
 
 // Mutation probabilities, expressed relative to each other.
 message MutationRates {

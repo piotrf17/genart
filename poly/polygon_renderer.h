@@ -5,10 +5,14 @@
 
 #include <vector>
 
+#include "core/genome_renderer.h"
+
 struct GLUtesselator;
 
+namespace genart {
+
 namespace image {
-  class Image;
+class Image;
 }  // namespace image
 
 namespace poly {
@@ -29,8 +33,8 @@ class PolygonRender {
   void Render(const std::vector<Polygon>& polygons,
               int width, int height);
 
-  void Render(const AnimatedPolygonImage& image,
-              int width, int height);
+  /*  void Render(const AnimatedPolygonImage& image,
+      int width, int height);*/
   
  private:
   GLUtesselator* tess_;
@@ -40,15 +44,20 @@ class PolygonRender {
 // also creates and manages an offline OpenGL window.  All GLX context is
 // managed, so threads can treat this class as a black box that creates
 // pixel images from a polygon description.
-class OfflinePolygonRender {
+class OfflinePolygonRenderer : public core::GenomeRenderer {
  public:
-  OfflinePolygonRender(int width, int height);
-  ~OfflinePolygonRender();
+  OfflinePolygonRenderer();
+  ~OfflinePolygonRenderer();
 
+  virtual void Reset(int width, int height);
+  
   // Create an offline rendering context with GLX.
-  bool Init();
+  // TODO(piotrf): the general effect code seems to think this can be
+  // called multiple times on the same object, but I'm pretty sure that's
+  // not true.
+  virtual bool Init();
 
-  image::Image* ToImage(const std::vector<Polygon>& polygons);
+  virtual std::unique_ptr<image::Image> ToImage(const core::Genome& genome);
   
  private:
   PolygonRender render_;
@@ -60,5 +69,6 @@ class OfflinePolygonRender {
 };
 
 }  // namespace poly
+}  // namespace genart
 
 #endif

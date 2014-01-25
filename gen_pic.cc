@@ -13,10 +13,11 @@
 #include <GL/glx.h>
 
 #include "comparison_window.h"
+#include "genetic_effect_builder.h"
+#include "core/params.pb.h"
+#include "core/genetic_effect.h"
+#include "core/genome.h"
 #include "image/image.h"
-#include "poly/polygon_effect.h"
-#include "poly/polygon_image.pb.h"
-#include "poly/util.h"
 #include "util/svg_writer.h"
 
 DEFINE_string(input_image, "", "Source image for creation.");
@@ -29,7 +30,12 @@ DEFINE_int32(display_step, 1,
              "of generations.  Set to 0 for no display");
 DEFINE_bool(benchmark, false, "Run as a benchmark");
 
+using genart::core::EffectParams;
+using genart::core::GeneticEffect;
+using genart::core::Genome;
+using genart::image::Image;
 using genart::ComparisonWindow;
+using genart::NewGeneticEffect;
 using genart::RenderProgressVisitor;
 
 int main(int argc, char** argv) {
@@ -40,17 +46,14 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // Create a new renderer.
-  poly::PolygonEffect polygon_effect;
-
-  // Set the source image.
-  image::Image src_image(FLAGS_input_image.c_str());
-  polygon_effect.SetInput(&src_image);
-
-  std::cout << src_image.width() << " " << src_image.height() << std::endl;
+  // Load the source image.
+  Image src_image(FLAGS_input_image.c_str());
+  std::cout << "Loaded image " << FLAGS_input_image << "("
+            << src_image.width() << "x" << src_image.height()
+            << ")" << std::endl;
   
-  // Set rendering parameters.
-  poly::EffectParams effect_params;
+  // Load and parse rendering parameters.
+  EffectParams effect_params;
   if (FLAGS_effect_config != "") {
     std::ifstream config_file(FLAGS_effect_config.c_str());
     if (!config_file.is_open()) {
@@ -66,7 +69,8 @@ int main(int argc, char** argv) {
       return 1;
     }
   }
-  polygon_effect.SetParams(effect_params);
+
+  std::unique_ptr<GeneticEffect> effect = NewGeneticEffect(effect_params);
 
   // Set a hook for a window to display output.
   std::unique_ptr<ComparisonWindow> window;
@@ -75,16 +79,13 @@ int main(int argc, char** argv) {
   if (FLAGS_display_step > 0) {
     // Create a window for output.
     window.reset(new ComparisonWindow());
-    window->SetSourceImage(new image::Image(src_image));
+    window->SetSourceImage(new Image(src_image));
     // Attach a visitor for rendering intermediate output.
     render_progress.reset(new RenderProgressVisitor(window.get()));
-    polygon_effect.AddVisitor(FLAGS_display_step, render_progress.get());
+    effect->AddVisitor(FLAGS_display_step, render_progress.get());
     // Start the rendering thread.
     render_thread.reset(new std::thread(&ComparisonWindow::Run, window.get()));
   }
-
-  poly::output::PolygonImage output_polygons;
-  polygon_effect.SetOutput(&output_polygons);
 
   // If running as a benchmark, use a given random seed and time the
   // rendering.
@@ -95,9 +96,10 @@ int main(int argc, char** argv) {
   }
   
   // Render the image!
-  polygon_effect.Render();
+  std::unique_ptr<Genome> output = effect->Render(src_image);
 
   // Save to a file.
+  /*
   if (!FLAGS_output_image.empty()) {
     poly::SaveImageToFile(output_polygons, FLAGS_output_image);
   }
@@ -105,6 +107,7 @@ int main(int argc, char** argv) {
     std::ofstream output_file(FLAGS_output_poly);
     output_polygons.SerializeToOstream(&output_file);
   }
+  */
 
   std::cout << "Finally, rendering finished." << std::endl;
 

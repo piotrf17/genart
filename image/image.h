@@ -7,6 +7,7 @@ namespace cv {
   class Mat;
 }  // namespace cv
 
+namespace genart {
 namespace image {
 
 class Image {
@@ -47,5 +48,6 @@ class Image {
 };
 
 }  // namespace image
+}  // namespace genart
 
 #endif

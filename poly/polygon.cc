@@ -11,11 +11,8 @@
 
 using util::Random;
 
+namespace genart {
 namespace poly {
-
-namespace {
-
-}  // namespace
 
 Polygon::Polygon() {
 }
@@ -96,3 +93,4 @@ bool Polygon::Convex() const {
 }
 
 }  // namespace poly
+}  // namespace genart

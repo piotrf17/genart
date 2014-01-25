@@ -3,6 +3,7 @@
 #include <CImg.h>
 #include <opencv2/opencv.hpp>
 
+namespace genart {
 namespace image {
 
 Image::Image(const std::string& filename) {
@@ -131,3 +132,4 @@ unsigned char* Image::mutable_pixels() {
 
 
 }  // namespace image
+}  // namespace genart

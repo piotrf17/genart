@@ -4,12 +4,14 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "poly/params.pb.h"
+#include "core/params.pb.h"
 #include "poly/polygon.h"
 #include "util/random.h"
 
+using genart::core::MutationParams;
 using util::Random;
 
+namespace genart {
 namespace poly {
 
 namespace internal {
@@ -282,3 +284,4 @@ void PolygonMutatorMovePoint::operator()(
 }
 
 }  // namespace poly
+}  // namespace genart

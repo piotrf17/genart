@@ -1,17 +1,17 @@
-#ifndef GENART_COMPARISON_WINDOW_H
-#define GENART_COMPARISON_WINDOW_H
+#ifndef GENART_COMPARISON_WINDOW_H_
+#define GENART_COMPARISON_WINDOW_H_
 
 #include <memory>
 #include <mutex>
 
-#include "poly/effect_visitor.h"
+#include "core/effect_visitor.h"
 #include "util/window.h"
+
+namespace genart {
 
 namespace image {
 class Image;
 }  // namespace image
-
-namespace genart {
 
 // A window that shows a side by side comparison of the original and the
 // image our effect has created.
@@ -44,7 +44,7 @@ class ComparisonWindow : public util::Window2d {
 };
 
 // A visitor class that updates our comparison window with the latest rendering.
-class RenderProgressVisitor : public poly::EffectVisitor {
+class RenderProgressVisitor : public core::EffectVisitor {
  public:
   explicit RenderProgressVisitor(ComparisonWindow* window);
 
@@ -56,4 +56,4 @@ class RenderProgressVisitor : public poly::EffectVisitor {
 
 }  // namespace genart
 
-#endif
+#endif  // GENART_COMPARISON_WINDOW_H_

@@ -1,28 +1,30 @@
-#include "poly/genome.h"
+#include "poly/polygon_genome.h"
 
 #include <algorithm>
 #include <iostream>
 
-#include "poly/params.pb.h"
+#include "core/params.pb.h"
 #include "poly/polygon_mutator.h"
 #include "util/random.h"
 
+using genart::core::MutationParams;
+using genart::core::MutationRates;
 using util::Random;
 
+namespace genart {
 namespace poly {
 
-Genome::Genome() {
+PolygonGenome::PolygonGenome() {
 }
 
-Genome::Genome(const std::vector<Polygon> polygons)
+PolygonGenome::PolygonGenome(const std::vector<Polygon> polygons)
     : polygons_(polygons) {
 }
 
-Genome::~Genome() {
+PolygonGenome::~PolygonGenome() {
 }
 
-void Genome::Randomize(const MutationParams& params,
-                       int num_poly) {
+void PolygonGenome::Randomize(const MutationParams& params, int num_poly) {
   polygons_.resize(num_poly);
   for (int i = 0; i < num_poly; ++i) {
     polygons_[i].Randomize(params.initial_size());
@@ -30,7 +32,7 @@ void Genome::Randomize(const MutationParams& params,
   }
 }
 
-void Genome::Mutate(const MutationParams& params) {
+void PolygonGenome::Mutate(const MutationParams& params) {
   const MutationRates& rates = params.rates();
   const int sum_of_rates =
       rates.point_add() +
@@ -86,4 +88,5 @@ void Genome::Mutate(const MutationParams& params) {
   }
 }
 
-}
+}  // namespac epoly
+}  // namespace genart

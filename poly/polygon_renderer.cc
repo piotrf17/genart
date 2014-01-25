@@ -1,4 +1,4 @@
-#include "poly/polygon_render.h"
+#include "poly/polygon_renderer.h"
 
 #include <iostream>
 #include <GL/gl.h>
@@ -6,9 +6,10 @@
 #include <GL/glx.h>
 
 #include "image/image.h"
-#include "poly/animated_polygon_image.h"
-#include "poly/genome.h"
+//#include "poly/animated_polygon_image.h"
+#include "poly/polygon_genome.h"
 
+namespace genart {
 namespace poly {
 
 // Necessary state for a GLX Pixmap based offline rendering window.
@@ -92,7 +93,7 @@ void PolygonRender::Render(const std::vector<Polygon>& polygons,
     delete[] vertex_buf;
   }
 }
-
+/*
 void PolygonRender::Render(const AnimatedPolygonImage& image,
                            int width, int height) {
   for (auto polygon_it = image.begin();
@@ -119,21 +120,27 @@ void PolygonRender::Render(const AnimatedPolygonImage& image,
     delete[] vertex_buf;
   }
 }
-
-OfflinePolygonRender::OfflinePolygonRender(int width, int height)
-    : width_(width),
-      height_(height) {
-  win_ = new OfflineGLWindow;
+*/
+OfflinePolygonRenderer::OfflinePolygonRenderer()
+    : win_(new OfflineGLWindow) {
 }
 
-OfflinePolygonRender::~OfflinePolygonRender() {
+OfflinePolygonRenderer::~OfflinePolygonRenderer() {
   glXMakeCurrent(win_->dpy, None, NULL);
   glXDestroyContext(win_->dpy, win_->ctx);
   XCloseDisplay(win_->dpy);
   delete win_;
 }
 
-bool OfflinePolygonRender::Init() {
+void OfflinePolygonRenderer::Reset(int width, int height) {
+  width_ = width;
+  height_ = height;
+  // TODO(piotrf): this should probably wrap some class or something
+  // safer.   As it is I don't even think this work correctly if you
+  // call reset with a different size.
+}
+
+bool OfflinePolygonRenderer::Init() {
   // Open a display connection to the X server.
   win_->dpy = XOpenDisplay(nullptr);
   if (win_->dpy == nullptr) {
@@ -188,12 +195,15 @@ bool OfflinePolygonRender::Init() {
   return true;
 }
 
-image::Image* OfflinePolygonRender::ToImage(
-    const std::vector<Polygon>& polygons) {
+std::unique_ptr<image::Image> OfflinePolygonRenderer::ToImage(
+    const core::Genome& genome) {
+  // TODO(piotrf): ewwww, fix dynamic_cast.
+  const PolygonGenome& poly_genome = dynamic_cast<const PolygonGenome&>(genome);
+  
   glXMakeCurrent(win_->dpy, win_->glx_pixmap, win_->ctx);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  render_.Render(polygons, width_, height_);
+  render_.Render(poly_genome.polygons(), width_, height_);
   
   // Read the image bytes into a new image object.
   unsigned char* pixels = new unsigned char[3 * width_ * height_];
@@ -207,7 +217,8 @@ image::Image* OfflinePolygonRender::ToImage(
     const int aligned_byte_width = (3 * width_ + (4 - 1)) & -4;
     unsigned char* aligned_pixels =
         new unsigned char[aligned_byte_width * height_];
-    glReadPixels(0, 0, width_, height_, GL_RGB, GL_UNSIGNED_BYTE, aligned_pixels);
+    glReadPixels(0, 0, width_, height_, GL_RGB, GL_UNSIGNED_BYTE,
+                 aligned_pixels);
     for (int i = 0; i < height_; ++i) {
       for (int j = 0; j < width_; ++j) {
         const int dealigned = 3 * (i * width_ + j);
@@ -219,7 +230,10 @@ image::Image* OfflinePolygonRender::ToImage(
     }
   }
 
-  return new image::Image(pixels, width_, height_);
+  return std::unique_ptr<image::Image>(
+      new image::Image(pixels, width_, height_));
 }
 
 }  // namespace poly
+}  // namespace genart
+
