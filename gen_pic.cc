@@ -70,7 +70,8 @@ int main(int argc, char** argv) {
     }
   }
 
-  std::unique_ptr<GeneticEffect> effect = NewGeneticEffect(effect_params);
+  std::unique_ptr<GeneticEffect> effect = NewGeneticEffect(src_image,
+                                                           effect_params);
 
   // Set a hook for a window to display output.
   std::unique_ptr<ComparisonWindow> window;
@@ -96,7 +97,7 @@ int main(int argc, char** argv) {
   }
   
   // Render the image!
-  std::unique_ptr<Genome> output = effect->Render(src_image);
+  std::unique_ptr<Genome> output = effect->Render();
 
   // Save to a file.
   /*

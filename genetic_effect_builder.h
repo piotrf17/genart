@@ -10,7 +10,12 @@ class EffectParams;
 class GeneticEffect;
 }  // namespace core
 
+namespace image {
+class Image;
+}  // namespace image
+
 std::unique_ptr<core::GeneticEffect> NewGeneticEffect(
+    const image::Image& image,
     const core::EffectParams& params);
 
 }  // namespace genart

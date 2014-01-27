@@ -5,17 +5,17 @@
 #include "core/genetic_effect.h"
 #include "core/genome.h"
 #include "core/genome_factory.h"
-#include "core/genome_renderer.h"
-#include "image/image.h"
+
+using genart::image::Image;
 
 namespace genart {
 namespace core {
 
-GeneticEffect::GeneticEffect(const EffectParams& params,
-                             std::unique_ptr<GenomeRenderer> renderer,
+GeneticEffect::GeneticEffect(Image input,
+                             EffectParams params,
                              std::unique_ptr<GenomeFactory> genome_factory)
-    : params_(params),
-      renderer_(std::move(renderer)),
+    : input_(input),
+      params_(params),
       genome_factory_(std::move(genome_factory)),
       fitness_func_(new FitnessL2WithFocii) {
 }
@@ -30,39 +30,31 @@ void GeneticEffect::AddVisitor(int interval, EffectVisitor* visitor) {
   visitors_.push_back(new_visitor);
 }
 
-std::unique_ptr<Genome> GeneticEffect::Render(
-    const image::Image& image) {
-  std::unique_ptr<Genome> mother(genome_factory_->Random(
-      params_.mutation_params()));
-  return RenderFromInitial(image, *mother);
+std::unique_ptr<Genome> GeneticEffect::Render() {
+  std::unique_ptr<Genome> mother = genome_factory_->Random(
+      params_.mutation_params());
+  return RenderFromInitial(*mother);
 }
 
 std::unique_ptr<Genome> GeneticEffect::RenderFromInitial(
-    const image::Image& input,
     const Genome& initial,
     double initial_fitness_threshold) {
   std::unique_ptr<Genome> mother = initial.Clone();
-  std::unique_ptr<Genome> child(genome_factory_->Create());
+  std::unique_ptr<Genome> child = genome_factory_->Create();
   
-  renderer_->Reset(input.width(), input.height());
-  if (!renderer_->Init()) {
-    // TODO(piotrf): how to handle failure?
-    return mother;
-  }
-
   // Calculate an initial fitness, based on a blank black image.
-  std::unique_ptr<image::Image> image, best_image;
-  image = renderer_->ToImage(*child);
-  best_image.reset(new image::Image(*image));
-  double last_fitness = fitness_func_->Evaluate(input, *image);
+  std::unique_ptr<Image> image, best_image;
+  image = child->Render();
+  best_image.reset(new Image(*image));
+  double last_fitness = fitness_func_->Evaluate(input_, *image);
   std::cout << "Initial fitness = " << last_fitness << std::endl;
   const double start_fitness = last_fitness;
 
   // Check if our initial polygons pass the initial threshold, and if not
   // reset the mother to be a random genome.
   if (initial_fitness_threshold < 1.0) {
-    image = renderer_->ToImage(*mother);
-    double mother_fitness = fitness_func_->Evaluate(input, *image);
+    image = mother->Render();
+    double mother_fitness = fitness_func_->Evaluate(input_, *image);
     if (initial_fitness_threshold * start_fitness <
         mother_fitness) {
       std::cout << "fitness frac initial = " << mother_fitness / start_fitness
@@ -76,12 +68,12 @@ std::unique_ptr<Genome> GeneticEffect::RenderFromInitial(
     // Try a child mutation.
     child = mother->Clone();
     child->Mutate(params_.mutation_params());
-    image = renderer_->ToImage(*child);
-    double child_fitness = fitness_func_->Evaluate(input, *image);
+    image = child->Render();
+    double child_fitness = fitness_func_->Evaluate(input_, *image);
     if (child_fitness < last_fitness) {
       mother.swap(child);
       last_fitness = child_fitness;
-      best_image.reset(new image::Image(*image));
+      best_image.reset(new Image(*image));
     }
     if (i % 100 == 0) {
       std::cout << "fitness = " << last_fitness << " frac initial = "

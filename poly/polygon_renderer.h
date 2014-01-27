@@ -3,9 +3,8 @@
 #ifndef GENART_POLY_POLYGON_RENDER_H
 #define GENART_POLY_POLYGON_RENDER_H
 
+#include <memory>
 #include <vector>
-
-#include "core/genome_renderer.h"
 
 struct GLUtesselator;
 
@@ -19,6 +18,7 @@ namespace poly {
 
 class AnimatedPolygonImage;
 class Polygon;
+class PolygonGenome;
 struct OfflineGLWindow;
 
 // A class that will render a polygon image to the current display.  The
@@ -44,28 +44,28 @@ class PolygonRender {
 // also creates and manages an offline OpenGL window.  All GLX context is
 // managed, so threads can treat this class as a black box that creates
 // pixel images from a polygon description.
-class OfflinePolygonRenderer : public core::GenomeRenderer {
+class OfflinePolygonRenderer {
  public:
-  OfflinePolygonRenderer();
+  OfflinePolygonRenderer(int width, int height);
   ~OfflinePolygonRenderer();
 
-  virtual void Reset(int width, int height);
-  
-  // Create an offline rendering context with GLX.
-  // TODO(piotrf): the general effect code seems to think this can be
-  // called multiple times on the same object, but I'm pretty sure that's
-  // not true.
-  virtual bool Init();
+  // TODO(piotrf): might be better just to check fail in constructor than
+  // to have this call.  If initialization of the renderer fails, there is
+  // no point in continuing anyway...unless at some point I want to support
+  // multiple renderers and they are tried in turn until one succeeds in
+  // initializing.
+  bool Init();
 
-  virtual std::unique_ptr<image::Image> ToImage(const core::Genome& genome);
+  // WARNING: this is currently thread hostile.  Only one thread can call
+  // this function for any OfflinePolygonRenderer object at any time.
+  // TODO(piotrf): fix please!
+  std::unique_ptr<image::Image> Render(const PolygonGenome& genome);
   
  private:
   PolygonRender render_;
   
   int width_, height_;
   OfflineGLWindow* win_;
-
-  GLUtesselator* tess_;
 };
 
 }  // namespace poly

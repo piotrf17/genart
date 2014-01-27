@@ -4,7 +4,9 @@
 #include <iostream>
 
 #include "core/params.pb.h"
+#include "image/image.h"
 #include "poly/polygon_mutator.h"
+#include "poly/polygon_renderer.h"
 #include "util/random.h"
 
 using genart::core::Genome;
@@ -15,11 +17,14 @@ using util::Random;
 namespace genart {
 namespace poly {
 
-PolygonGenome::PolygonGenome() {
+PolygonGenome::PolygonGenome(OfflinePolygonRenderer* renderer)
+    : renderer_(renderer) {
 }
 
-PolygonGenome::PolygonGenome(const std::vector<Polygon> polygons)
-    : polygons_(polygons) {
+PolygonGenome::PolygonGenome(OfflinePolygonRenderer* renderer,
+                             const std::vector<Polygon> polygons)
+    : renderer_(renderer),
+      polygons_(polygons) {
 }
 
 PolygonGenome::~PolygonGenome() {
@@ -34,7 +39,7 @@ void PolygonGenome::Randomize(const MutationParams& params, int num_poly) {
 }
 
 std::unique_ptr<Genome> PolygonGenome::Clone() const {
-  return std::unique_ptr<Genome>(new PolygonGenome(polygons_));
+  return std::unique_ptr<Genome>(new PolygonGenome(renderer_, polygons_));
 }
 
 void PolygonGenome::Mutate(const MutationParams& params) {
@@ -91,6 +96,10 @@ void PolygonGenome::Mutate(const MutationParams& params) {
         params.min_alpha(),
         params.max_alpha());
   }
+}
+
+std::unique_ptr<image::Image> PolygonGenome::Render() const {
+  return renderer_->Render(*this);
 }
 
 }  // namespac epoly

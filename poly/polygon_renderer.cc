@@ -121,8 +121,10 @@ void PolygonRender::Render(const AnimatedPolygonImage& image,
   }
 }
 */
-OfflinePolygonRenderer::OfflinePolygonRenderer()
-    : win_(new OfflineGLWindow) {
+OfflinePolygonRenderer::OfflinePolygonRenderer(int width, int height)
+    : width_(width),
+      height_(height),
+      win_(new OfflineGLWindow) {
 }
 
 OfflinePolygonRenderer::~OfflinePolygonRenderer() {
@@ -130,14 +132,6 @@ OfflinePolygonRenderer::~OfflinePolygonRenderer() {
   glXDestroyContext(win_->dpy, win_->ctx);
   XCloseDisplay(win_->dpy);
   delete win_;
-}
-
-void OfflinePolygonRenderer::Reset(int width, int height) {
-  width_ = width;
-  height_ = height;
-  // TODO(piotrf): this should probably wrap some class or something
-  // safer.   As it is I don't even think this work correctly if you
-  // call reset with a different size.
 }
 
 bool OfflinePolygonRenderer::Init() {
@@ -195,15 +189,12 @@ bool OfflinePolygonRenderer::Init() {
   return true;
 }
 
-std::unique_ptr<image::Image> OfflinePolygonRenderer::ToImage(
-    const core::Genome& genome) {
-  // TODO(piotrf): ewwww, fix dynamic_cast.
-  const PolygonGenome& poly_genome = dynamic_cast<const PolygonGenome&>(genome);
-  
+std::unique_ptr<image::Image> OfflinePolygonRenderer::Render(
+    const PolygonGenome& genome) {
   glXMakeCurrent(win_->dpy, win_->glx_pixmap, win_->ctx);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  render_.Render(poly_genome.polygons(), width_, height_);
+  render_.Render(genome.polygons(), width_, height_);
   
   // Read the image bytes into a new image object.
   unsigned char* pixels = new unsigned char[3 * width_ * height_];

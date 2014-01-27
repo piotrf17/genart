@@ -6,6 +6,11 @@
 #include <memory>
 
 namespace genart {
+
+namespace image {
+class Image;
+}  // namespace image
+  
 namespace core {
 
 class MutationParams;
@@ -20,6 +25,9 @@ class Genome {
   // Apply a random mutation to this genome.  The MutationParams proto
   // can contain extensions with specific parameters for the derived class.
   virtual void Mutate(const MutationParams& mutation_params) = 0;
+
+  // Render the genome into an image.
+  virtual std::unique_ptr<image::Image> Render() const = 0;
   
  private:
 };

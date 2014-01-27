@@ -7,9 +7,12 @@ namespace genart {
 namespace poly {
 
 class PolygonGenome;
+class OfflinePolygonRenderer;
   
 class PolygonGenomeFactory : public core::GenomeFactory {
  public:
+  explicit PolygonGenomeFactory(
+      std::unique_ptr<OfflinePolygonRenderer> renderer);
 
   virtual std::unique_ptr<core::Genome> Create() const;
 
@@ -17,6 +20,7 @@ class PolygonGenomeFactory : public core::GenomeFactory {
       const core::MutationParams& mutation_params) const;
     
  private:
+  std::unique_ptr<OfflinePolygonRenderer> renderer_;
 };
 
 }  // namespace poly

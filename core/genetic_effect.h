@@ -9,24 +9,20 @@
 #include <vector>
 
 #include "core/params.pb.h"
+#include "image/image.h"
 
 namespace genart {
-namespace image {
-class Image;
-}  // namespace image
-  
 namespace core {
 
 class EffectVisitor;
 class Fitness;
 class Genome;
-class GenomeRenderer;
 class GenomeFactory;
 
 class GeneticEffect {
  public:
-  GeneticEffect(const EffectParams& params,
-                std::unique_ptr<GenomeRenderer> renderer,
+  GeneticEffect(image::Image input,
+                EffectParams params,
                 std::unique_ptr<GenomeFactory> genome_factory);
   virtual ~GeneticEffect();
 
@@ -34,16 +30,19 @@ class GeneticEffect {
   // every interval steps.
   void AddVisitor(int interval, EffectVisitor* visitor);
 
-  std::unique_ptr<Genome> Render(const image::Image& image);
+  std::unique_ptr<Genome> Render();
   std::unique_ptr<Genome> RenderFromInitial(
-      const image::Image& input,
       const Genome& initial,
       double initial_fitness_threshold = 1.0);
   
  private:
+  // Our copy of the reference image.
+  image::Image input_;
+
+  // Parameters controlling how the effect is rendered.
   EffectParams params_;
 
-  std::unique_ptr<GenomeRenderer> renderer_;
+  // A factory for creating new blank or random genomes.
   std::unique_ptr<GenomeFactory> genome_factory_;
 
   // Visitors on intermediate output.
