@@ -8,6 +8,7 @@
 #include <thread>
 
 #include <gflags/gflags.h>
+#include <glog/logging.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <GL/glx.h>
@@ -40,6 +41,7 @@ using genart::RenderProgressVisitor;
 
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
+  google::InitGoogleLogging(argv[0]);
 
   if (XInitThreads() == 0) {
     std::cerr << "Failed to initialize thread support in xlib." << std::endl;

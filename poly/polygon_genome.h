@@ -24,14 +24,14 @@ class PolygonGenome : public core::Genome {
   explicit PolygonGenome(OfflinePolygonRenderer* renderer);
   PolygonGenome(OfflinePolygonRenderer* renderer,
                 const std::vector<Polygon> polygons);
+  PolygonGenome(OfflinePolygonRenderer* renderer,
+                const core::MutationParams& params,
+                int num_polygons);
   virtual ~PolygonGenome();
 
   virtual std::unique_ptr<core::Genome> Clone() const;
   virtual void Mutate(const core::MutationParams& params);
   virtual std::unique_ptr<image::Image> Render() const;
-
-  // TODO(piotrf): turn this into a constructor instead.
-  void Randomize(const core::MutationParams& params, int num_poly);
 
   const std::vector<Polygon>& polygons() const {
     return polygons_;

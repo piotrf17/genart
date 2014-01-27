@@ -29,9 +29,11 @@ find_package(OpenCV REQUIRED)
 
 set(APP_LIBRARIES
   core
+  circlepack
   poly
   image
   util
+  glog
   gflags
   pthread
   GL
@@ -45,6 +47,7 @@ set(APP_LIBRARIES
 # Build targets
 
 # Sub libraries
+add_subdirectory(circlepack)
 add_subdirectory(core)
 add_subdirectory(image)
 add_subdirectory(poly)

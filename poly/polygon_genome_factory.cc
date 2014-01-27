@@ -20,9 +20,9 @@ std::unique_ptr<Genome> PolygonGenomeFactory::Create() const {
 
 std::unique_ptr<Genome> PolygonGenomeFactory::Random(
     const MutationParams& mutation_params) const {
-  std::unique_ptr<PolygonGenome> genome(new PolygonGenome(renderer_.get()));
-  genome->Randomize(mutation_params, 1);
-  return std::unique_ptr<Genome>(genome.release());
+  return std::unique_ptr<Genome>(new PolygonGenome(renderer_.get(),
+                                                   mutation_params,
+                                                   1));
 }
 
 }  // namespace poly

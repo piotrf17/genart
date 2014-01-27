@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <glog/logging.h>
+
 #include "core/effect_visitor.h"
 #include "core/fitness_l2_with_focii.h"
 #include "core/genetic_effect.h"
@@ -47,7 +49,7 @@ std::unique_ptr<Genome> GeneticEffect::RenderFromInitial(
   image = child->Render();
   best_image.reset(new Image(*image));
   double last_fitness = fitness_func_->Evaluate(input_, *image);
-  std::cout << "Initial fitness = " << last_fitness << std::endl;
+  LOG(INFO) << "Initial fitness = " << last_fitness << std::endl;
   const double start_fitness = last_fitness;
 
   // Check if our initial polygons pass the initial threshold, and if not
@@ -57,7 +59,7 @@ std::unique_ptr<Genome> GeneticEffect::RenderFromInitial(
     double mother_fitness = fitness_func_->Evaluate(input_, *image);
     if (initial_fitness_threshold * start_fitness <
         mother_fitness) {
-      std::cout << "fitness frac initial = " << mother_fitness / start_fitness
+      LOG(INFO) << "fitness frac initial = " << mother_fitness / start_fitness
                 << " > threshold " << initial_fitness_threshold
                 << " -> starting fresh" << std::endl;
       mother = genome_factory_->Random(params_.mutation_params());
@@ -76,13 +78,14 @@ std::unique_ptr<Genome> GeneticEffect::RenderFromInitial(
       best_image.reset(new Image(*image));
     }
     if (i % 100 == 0) {
-      std::cout << "fitness = " << last_fitness << " frac initial = "
+      LOG(INFO) << "iter " << i << " "
+                << "fitness = " << last_fitness << " frac initial = "
                 << last_fitness / start_fitness << std::endl;
     }
 
     if (params_.has_fitness_threshold() &&
         last_fitness <= start_fitness * params_.fitness_threshold()) {
-      std::cout << "fitness = " << last_fitness << " frac initial = "
+      LOG(INFO) << "fitness = " << last_fitness << " frac initial = "
                 << last_fitness / start_fitness
                 << " which is under threshold of "
                 << params_.fitness_threshold() << " -> FINISHED." << std::endl;

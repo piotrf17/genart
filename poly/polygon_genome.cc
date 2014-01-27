@@ -27,15 +27,19 @@ PolygonGenome::PolygonGenome(OfflinePolygonRenderer* renderer,
       polygons_(polygons) {
 }
 
-PolygonGenome::~PolygonGenome() {
-}
-
-void PolygonGenome::Randomize(const MutationParams& params, int num_poly) {
-  polygons_.resize(num_poly);
-  for (int i = 0; i < num_poly; ++i) {
+PolygonGenome::PolygonGenome(OfflinePolygonRenderer* renderer,
+                             const MutationParams& params,
+                             int num_polygons)
+    : renderer_(renderer) {
+  polygons_.resize(num_polygons);
+  for (int i = 0; i < num_polygons; ++i) {
     polygons_[i].Randomize(params.initial_size());
     polygons_[i].MutateColor(params.min_alpha(), params.max_alpha());
   }
+}
+
+PolygonGenome::~PolygonGenome() {
+  
 }
 
 std::unique_ptr<Genome> PolygonGenome::Clone() const {

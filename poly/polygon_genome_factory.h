@@ -6,7 +6,6 @@
 namespace genart {
 namespace poly {
 
-class PolygonGenome;
 class OfflinePolygonRenderer;
   
 class PolygonGenomeFactory : public core::GenomeFactory {

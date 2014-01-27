@@ -15,7 +15,6 @@ std::unique_ptr<GeneticEffect> NewGeneticEffect(const image::Image& image,
   // Only option now is poly.
   std::unique_ptr<poly::OfflinePolygonRenderer> renderer(
       new poly::OfflinePolygonRenderer(image.width(), image.height()));
-  renderer->Init();
   genome_factory.reset(new poly::PolygonGenomeFactory(std::move(renderer)));
   
   return std::unique_ptr<GeneticEffect>(
