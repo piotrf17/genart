@@ -7,6 +7,7 @@
 #include "poly/polygon_mutator.h"
 #include "util/random.h"
 
+using genart::core::Genome;
 using genart::core::MutationParams;
 using genart::core::MutationRates;
 using util::Random;
@@ -30,6 +31,10 @@ void PolygonGenome::Randomize(const MutationParams& params, int num_poly) {
     polygons_[i].Randomize(params.initial_size());
     polygons_[i].MutateColor(params.min_alpha(), params.max_alpha());
   }
+}
+
+std::unique_ptr<Genome> PolygonGenome::Clone() const {
+  return std::unique_ptr<Genome>(new PolygonGenome(polygons_));
 }
 
 void PolygonGenome::Mutate(const MutationParams& params) {

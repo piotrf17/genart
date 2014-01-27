@@ -18,9 +18,6 @@ class GenomeFactory {
   // black image.
   virtual std::unique_ptr<Genome> Create() const = 0;
 
-  // Create a copy of an existing genome.
-  virtual std::unique_ptr<Genome> Copy(const Genome& other) const = 0;
-
   // Create a new random genome based on the given mutation parameters.
   virtual std::unique_ptr<Genome> Random(
       const MutationParams& mutation_params) const = 0;

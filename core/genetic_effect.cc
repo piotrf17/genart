@@ -41,7 +41,7 @@ std::unique_ptr<Genome> GeneticEffect::RenderFromInitial(
     const image::Image& input,
     const Genome& initial,
     double initial_fitness_threshold) {
-  std::unique_ptr<Genome> mother(genome_factory_->Copy(initial));
+  std::unique_ptr<Genome> mother = initial.Clone();
   std::unique_ptr<Genome> child(genome_factory_->Create());
   
   renderer_->Reset(input.width(), input.height());
@@ -74,12 +74,12 @@ std::unique_ptr<Genome> GeneticEffect::RenderFromInitial(
 
   for (int i = 0; i < params_.max_generations(); ++i) {
     // Try a child mutation.
-    child = genome_factory_->Copy(*mother);
+    child = mother->Clone();
     child->Mutate(params_.mutation_params());
     image = renderer_->ToImage(*child);
     double child_fitness = fitness_func_->Evaluate(input, *image);
     if (child_fitness < last_fitness) {
-      mother = genome_factory_->Copy(*child);
+      mother.swap(child);
       last_fitness = child_fitness;
       best_image.reset(new image::Image(*image));
     }

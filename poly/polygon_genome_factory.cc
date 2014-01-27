@@ -12,13 +12,6 @@ std::unique_ptr<Genome> PolygonGenomeFactory::Create() const {
   return std::unique_ptr<Genome>(new PolygonGenome());
 }
 
-std::unique_ptr<Genome> PolygonGenomeFactory::Copy(
-    const Genome& other) const {
-  // TODO(piotrf): remove dynamic_cast
-  return std::unique_ptr<Genome>(new PolygonGenome(
-      dynamic_cast<const PolygonGenome&>(other).polygons()));
-}
-
 std::unique_ptr<Genome> PolygonGenomeFactory::Random(
     const MutationParams& mutation_params) const {
   std::unique_ptr<PolygonGenome> genome(new PolygonGenome());

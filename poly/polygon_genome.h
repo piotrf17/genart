@@ -21,10 +21,12 @@ class PolygonGenome : public core::Genome {
  public:
   PolygonGenome();
   explicit PolygonGenome(const std::vector<Polygon> polygons);
-  ~PolygonGenome();
+  virtual ~PolygonGenome();
 
+  virtual std::unique_ptr<core::Genome> Clone() const;
   virtual void Mutate(const core::MutationParams& params);
-  
+
+  // TODO(piotrf): turn this into a constructor instead.
   void Randomize(const core::MutationParams& params, int num_poly);
 
   const std::vector<Polygon>& polygons() const {
@@ -32,7 +34,6 @@ class PolygonGenome : public core::Genome {
   }
   
  private:
-
   std::vector<Polygon> polygons_;
 };
 

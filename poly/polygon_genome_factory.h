@@ -13,9 +13,6 @@ class PolygonGenomeFactory : public core::GenomeFactory {
 
   virtual std::unique_ptr<core::Genome> Create() const;
 
-  virtual std::unique_ptr<core::Genome> Copy(
-      const core::Genome& other) const;
-
   virtual std::unique_ptr<core::Genome> Random(
       const core::MutationParams& mutation_params) const;
     
