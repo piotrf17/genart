@@ -17,7 +17,7 @@ CirclepackGenome::CirclepackGenome(OfflineCirclepackRenderer* renderer)
 }
 
 CirclepackGenome::CirclepackGenome(OfflineCirclepackRenderer* renderer,
-                                   const std::vector<Point> points)
+                                   const std::vector<PointColor> points)
     : renderer_(renderer),
       points_(points) {
 }
@@ -27,7 +27,13 @@ CirclepackGenome::CirclepackGenome(OfflineCirclepackRenderer* renderer,
                                    int num_points)
     : renderer_(renderer) {
   for (int i = 0; i < num_points; ++i) {
-    points_.emplace_back(Random::Double(), Random::Double());
+    RGBA color;
+    color.r = Random::Float();
+    color.g = Random::Float();
+    color.b = Random::Float();
+    color.a = 1.0;
+    points_.push_back(
+        std::make_pair(Point(Random::Double(), Random::Double()), color));
   }
 }
 

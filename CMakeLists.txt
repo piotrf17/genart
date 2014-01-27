@@ -36,6 +36,8 @@ set(APP_LIBRARIES
   glog
   gflags
   pthread
+  CGAL
+  gmp
   GL
   GLU
   X11

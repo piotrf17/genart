@@ -26,6 +26,7 @@ class OfflineCirclepackRenderer {
 
  private:
   std::unique_ptr<util::OfflineGLContext> context_;
+  int width_, height_;
 };
 
 }  // namespcae circlepack
