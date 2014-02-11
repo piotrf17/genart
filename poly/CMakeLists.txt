@@ -1,6 +1,12 @@
 # Build proto files.
 include_directories(${PROJECT_BINARY_DIR})
-PROTOBUF_GENERATE_CPP(IMAGE_PROTO_SRCS IMAGE_PROTO_HDRS polygon_image.proto)
+PROTOBUF_GENERATE_CPP(
+  PROTO_SRCS
+  PROTO_HDRS
+  ../core/params.proto  # TODO(piotrf): fix this ugliness.
+  poly_params.proto
+  polygon_image.proto
+)
 
 # Poly library.
 set(SRCS
@@ -12,7 +18,8 @@ set(SRCS
   polygon_mutator.cc
   polygon_renderer.cc
 #  util.cc
-  ${IMAGE_PROTO_SRCS})
+  ${PROTO_SRCS}
+  ${PROTO_HDRS})
 add_library(poly ${SRCS})
 
 # Testing.

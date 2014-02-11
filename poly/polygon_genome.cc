@@ -3,15 +3,17 @@
 #include <algorithm>
 #include <iostream>
 
+#include <glog/logging.h>
+
 #include "core/params.pb.h"
 #include "image/image.h"
+#include "poly/poly_params.pb.h"
 #include "poly/polygon_mutator.h"
 #include "poly/polygon_renderer.h"
 #include "util/random.h"
 
 using genart::core::Genome;
 using genart::core::MutationParams;
-using genart::core::MutationRates;
 using util::Random;
 
 namespace genart {
@@ -31,10 +33,13 @@ PolygonGenome::PolygonGenome(OfflinePolygonRenderer* renderer,
                              const MutationParams& params,
                              int num_polygons)
     : renderer_(renderer) {
+  CHECK(params.HasExtension(mutation_params_ext));
+  const PolyMutationParams& poly_params =
+      params.GetExtension(mutation_params_ext);
   polygons_.resize(num_polygons);
   for (int i = 0; i < num_polygons; ++i) {
-    polygons_[i].Randomize(params.initial_size());
-    polygons_[i].MutateColor(params.min_alpha(), params.max_alpha());
+    polygons_[i].Randomize(poly_params.initial_size());
+    polygons_[i].MutateColor(poly_params.min_alpha(), poly_params.max_alpha());
   }
 }
 
@@ -47,7 +52,10 @@ std::unique_ptr<Genome> PolygonGenome::Clone() const {
 }
 
 void PolygonGenome::Mutate(const MutationParams& params) {
-  const MutationRates& rates = params.rates();
+  CHECK(params.HasExtension(mutation_params_ext));
+  const PolyMutationParams& poly_params =
+      params.GetExtension(mutation_params_ext);
+  const PolyMutationRates& rates = poly_params.rates();
   const int sum_of_rates =
       rates.point_add() +
       rates.point_delete() +
@@ -60,23 +68,23 @@ void PolygonGenome::Mutate(const MutationParams& params) {
   if ((random -= rates.point_add()) < 0) {
     // Add a new point to a polygon.
     polygons_[Random::Integer(polygons_.size())].Mutate(
-        PolygonMutatorAddPoint(params));
+        PolygonMutatorAddPoint(poly_params));
   } else if ((random -= rates.point_delete()) < 0) {
     // Delete a point from a polygon.
     if (polygons_.size() > 1) {
       polygons_[Random::Integer(polygons_.size())].Mutate(
-          PolygonMutatorDeletePoint(params));
+          PolygonMutatorDeletePoint(poly_params));
     }
   } else if ((random -= rates.point_move()) < 0) {
     // Move a point on a polygon.
     polygons_[Random::Integer(polygons_.size())].Mutate(
-        PolygonMutatorMovePoint(params));
+        PolygonMutatorMovePoint(poly_params));
   } else if ((random -= rates.polygon_add()) < 0) {
     // Add a new polygon.
-    if (static_cast<int>(polygons_.size()) < params.max_polygons()) {
+    if (static_cast<int>(polygons_.size()) < poly_params.max_polygons()) {
       Polygon rand_poly;
-      rand_poly.Randomize(params.initial_size());
-      rand_poly.MutateColor(params.min_alpha(), params.max_alpha());
+      rand_poly.Randomize(poly_params.initial_size());
+      rand_poly.MutateColor(poly_params.min_alpha(), poly_params.max_alpha());
       polygons_.push_back(rand_poly);
     }
   } else if ((random -= rates.polygon_delete()) < 0) {
@@ -97,8 +105,8 @@ void PolygonGenome::Mutate(const MutationParams& params) {
   } else {
     // Change the color of a polygon.
     polygons_[Random::Integer(polygons_.size())].MutateColor(
-        params.min_alpha(),
-        params.max_alpha());
+        poly_params.min_alpha(),
+        poly_params.max_alpha());
   }
 }
 

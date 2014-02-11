@@ -4,11 +4,10 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "core/params.pb.h"
+#include "poly/poly_params.pb.h"
 #include "poly/polygon.h"
 #include "util/random.h"
 
-using genart::core::MutationParams;
 using util::Random;
 
 namespace genart {

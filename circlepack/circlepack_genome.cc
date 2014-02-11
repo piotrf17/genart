@@ -1,13 +1,15 @@
 #include "circlepack/circlepack_genome.h"
 
-#include "core/params.pb.h"
+#include <glog/logging.h>
+
 #include "image/image.h"
+#include "circlepack/params.pb.h"  // TODO(piotrf): this is super awful :(
+#include "circlepack/circlepack_params.pb.h"
 #include "circlepack/circlepack_renderer.h"
 #include "util/random.h"
 
 using genart::core::Genome;
 using genart::core::MutationParams;
-using genart::core::MutationRates;
 using util::Random;
 
 namespace genart {
@@ -46,7 +48,10 @@ std::unique_ptr<Genome> CirclepackGenome::Clone() const {
 }
 
 void CirclepackGenome::Mutate(const MutationParams& params) {
-  const MutationRates& rates = params.rates();
+  CHECK(params.HasExtension(mutation_params_ext));
+  const CirclepackMutationParams& cp_params =
+      params.GetExtension(mutation_params_ext);
+  const CirclepackMutationRates& rates = cp_params.rates();
   const int sum_of_rates =
       rates.point_move() +
       rates.color_change();
@@ -54,8 +59,8 @@ void CirclepackGenome::Mutate(const MutationParams& params) {
   int i = Random::Integer(points_.size());
   if ((random -= rates.point_move()) < 0) {
     // Move a point.
-    double dx = Random::Double(-params.max_move(), params.max_move());
-    double dy = Random::Double(-params.max_move(), params.max_move());
+    double dx = Random::Double(-cp_params.max_move(), cp_params.max_move());
+    double dy = Random::Double(-cp_params.max_move(), cp_params.max_move());
     
     points_[i].first.x += dx;
     points_[i].first.y += dy;

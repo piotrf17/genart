@@ -2,48 +2,10 @@
 
 package genart.core;
 
-// Mutation probabilities, expressed relative to each other.
-message MutationRates {
-  optional int32 point_add = 1 [default = 5];
-
-  optional int32 point_delete = 2 [default = 5];
-
-  optional int32 point_move = 3 [default = 20];
-
-  optional int32 polygon_add = 4 [default = 1];
-
-  optional int32 polygon_delete = 5 [default = 1];
-  
-  optional int32 polygon_move = 6 [default = 1];
-
-  optional int32 color_change = 7 [default = 10];
-}
-
 // Parameters limiting mutations.
 message MutationParams {
-  optional MutationRates rates = 1;
-
-  // Maximum number of polygons to use.
-  optional int32 max_polygons = 2 [default = 125];
-
-  // The starting size parameter for new polygons.
-  optional double initial_size = 3 [default = 0.2];
-
-  // Minimum and maximum color alpha values.
-  optional double min_alpha = 4 [default = 0.3];
-  optional double max_alpha = 5 [default = 0.3];
-
-  // Max number of points a polygon can have.
-  optional int32 max_points_per_polygon = 6 [default = 10];
-
-  // Max distance in normalized screen space a point move can make for x
-  // and y coordinates, individually.  Max total distance is sqrt(2) larger.
-  optional double max_move = 7 [default = 0.05];
-
-  // For non-convex additions, max distance a point can move tangentially
-  // or normal to the side, normalized by the length of that side.
-  optional double non_convex_add_max_normal_distance = 8 [default = 0.5];
-  optional double non_convex_add_max_tangential_distance = 9 [default = 0.25];
+  extensions 100 to 199;
+  // 100 - PolyMutationParams
 }
 
 // Manually assigned points of interest.

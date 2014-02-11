@@ -3,6 +3,7 @@ project(GENART)
 
 # All header files are specified relative to base dir.
 include_directories(${PROJECT_SOURCE_DIR})
+SET(PROTOBUF_INCLUDE_DIR ${PROJECT_SOURCE_DIR})
 
 # Set some basic build flags.
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Werror -std=c++0x")

@@ -6,16 +6,14 @@
 #include "poly/polygon.h"
 
 namespace genart {
-
-namespace core {
-class MutationParams;
-}  // namespace core
   
 namespace poly {
 
+class PolyMutationParams;
+
 class PolygonMutator {
  public:
-  explicit PolygonMutator(const core::MutationParams& params)
+  explicit PolygonMutator(const PolyMutationParams& params)
       : params_(params) {}
   virtual ~PolygonMutator() {}
   
@@ -23,13 +21,13 @@ class PolygonMutator {
                           std::vector<Point>* points) const = 0;
 
  protected:
-  const core::MutationParams& params_;
+  const PolyMutationParams& params_;
 };
 
 #define NEW_MUTATOR(mutator_name)                               \
   class mutator_name : public PolygonMutator {                  \
    public:                                                      \
-    explicit mutator_name(const core::MutationParams& params)   \
+    explicit mutator_name(const PolyMutationParams& params)     \
         : PolygonMutator(params) {}                             \
     virtual ~mutator_name() {}                                  \
     virtual void operator()(Polygon* polygon,                   \

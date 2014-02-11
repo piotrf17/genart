@@ -1,0 +1,26 @@
+// Params for circlepack rendering.
+
+// TODO(piotrf): figure out how to convince cmake to do cross directory imports.
+import "params.proto";
+
+package genart.circlepack;
+
+// Mutation probabilities, expressed relative to each other.
+message CirclepackMutationRates {
+  optional int32 point_move = 1 [default = 20];
+
+  optional int32 color_change = 2 [default = 10];
+}
+
+
+message CirclepackMutationParams {
+  optional CirclepackMutationRates rates = 1;
+
+  // Max distance in normalized screen space a point move can make for x
+  // and y coordinates, individually.  Max total distance is sqrt(2) larger.
+  optional double max_move = 2 [default = 0.05];
+}
+
+extend genart.core.MutationParams {
+  optional CirclepackMutationParams mutation_params_ext = 101;
+}
