@@ -7,6 +7,7 @@
 
 using genart::core::Genome;
 using genart::core::MutationParams;
+using genart::core::MutationRates;
 using util::Random;
 
 namespace genart {
@@ -45,7 +46,25 @@ std::unique_ptr<Genome> CirclepackGenome::Clone() const {
 }
 
 void CirclepackGenome::Mutate(const MutationParams& params) {
-  // TODO(piotrf): fill me in
+  const MutationRates& rates = params.rates();
+  const int sum_of_rates =
+      rates.point_move() +
+      rates.color_change();
+  int random = Random::Integer(sum_of_rates);
+  int i = Random::Integer(points_.size());
+  if ((random -= rates.point_move()) < 0) {
+    // Move a point.
+    double dx = Random::Double(-params.max_move(), params.max_move());
+    double dy = Random::Double(-params.max_move(), params.max_move());
+    
+    points_[i].first.x += dx;
+    points_[i].first.y += dy;
+  } else {
+    // Change the color of a point.
+    points_[i].second.r = Random::Float();
+    points_[i].second.g = Random::Float();
+    points_[i].second.b = Random::Float();
+  }
 }
 
 std::unique_ptr<image::Image> CirclepackGenome::Render() const {

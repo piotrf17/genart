@@ -22,7 +22,7 @@ std::unique_ptr<Genome> CirclepackGenomeFactory::Random(
     const MutationParams& mutation_params) const {
   return std::unique_ptr<Genome>(new CirclepackGenome(renderer_.get(),
                                                       mutation_params,
-                                                      100));
+                                                      500));
 }
 
 }  // namespace circlepack
